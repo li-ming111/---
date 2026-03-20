@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帮助中心 - 智游中国</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md fixed w-full z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{{ url_for('index') }}" class="flex items-center space-x-2">
+                <i class="fa fa-map-marker text-2xl text-blue-600"></i>
+                <span class="text-xl font-bold text-gray-800">智游中国</span>
+            </a>
+            <div class="hidden md:flex space-x-8">
+                <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-blue-600 transition-colors">首页</a>
+                <a href="{{ url_for('about') }}" class="text-gray-600 hover:text-blue-600 transition-colors">关于我们</a>
+                <a href="{{ url_for('help_page') }}" class="text-blue-600 font-medium">帮助中心</a>
+            </div>
+            <button class="md:hidden text-gray-600" id="mobile-menu-button">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div class="md:hidden hidden bg-white border-t" id="mobile-menu">
+            <div class="container mx-auto px-4 py-2">
+                <a href="{{ url_for('index') }}" class="block py-2 text-gray-600 hover:text-blue-600 transition-colors">首页</a>
+                <a href="{{ url_for('about') }}" class="block py-2 text-gray-600 hover:text-blue-600 transition-colors">关于我们</a>
+                <a href="{{ url_for('help_page') }}" class="block py-2 text-blue-600 font-medium">帮助中心</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="container mx-auto px-4 pt-28 pb-16">
+        <section class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">帮助中心</h1>
+            
+            <!-- 搜索框 -->
+            <div class="mb-8 bg-white p-4 rounded-lg shadow-sm">
+                <div class="relative">
+                    <input type="text" placeholder="搜索帮助内容..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- 常见问题 -->
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+                <h2 class="text-xl font-semibold text-gray-700 p-6 bg-gray-50 border-b">常见问题</h2>
+                
+                <div class="divide-y divide-gray-100">
+                    <!-- FAQ 项目 1 -->
+                    <div class="faq-item">
+                        <div class="faq-question p-6 cursor-pointer flex justify-between items-center">
+                            <h3 class="font-medium text-gray-800">如何使用智游中国规划我的旅行？</h3>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </div>
+                        <div class="faq-answer px-6 pb-6 hidden">
+                            <p class="text-gray-600">
+                                使用智游中国非常简单！在首页，您只需输入目的地省份和城市、旅游天数，以及您的偏好标签（如历史文化、自然风光、美食等），然后点击"生成行程"按钮。系统将根据您的输入，智能为您规划一份详细的城市内旅游行程，包括每日景点安排、交通建议、餐饮推荐等信息。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ 项目 2 -->
+                    <div class="faq-item">
+                        <div class="faq-question p-6 cursor-pointer flex justify-between items-center">
+                            <h3 class="font-medium text-gray-800">为什么系统只推荐城市内的景点？</h3>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </div>
+                        <div class="faq-answer px-6 pb-6 hidden">
+                            <p class="text-gray-600">
+                                智游中国的特色是提供精细化的城市级旅游规划。当您指定一个具体城市（如"大理市"）时，我们只推荐该城市范围内的景点，这样可以让您更深入地体验当地文化和生活，避免长途奔波。每天我们会为您安排2-4个景点，让您有充足的时间细细品味每个地方。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ 项目 3 -->
+                    <div class="faq-item">
+                        <div class="faq-question p-6 cursor-pointer flex justify-between items-center">
+                            <h3 class="font-medium text-gray-800">季节性推荐是如何工作的？</h3>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </div>
+                        <div class="faq-answer px-6 pb-6 hidden">
+                            <p class="text-gray-600">
+                                我们的系统会根据您选择的旅行日期，自动分析目的地的季节特点，推荐最适合当前季节游览的景点。例如，在秋季（10-11月）访问大理时，系统会优先推荐观赏红叶的景点和户外活动；而在雨季，则会增加室内景点的比例。同时，我们也会根据节假日信息，避开人流高峰，为您提供更舒适的旅行体验。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ 项目 4 -->
+                    <div class="faq-item">
+                        <div class="faq-question p-6 cursor-pointer flex justify-between items-center">
+                            <h3 class="font-medium text-gray-800">我可以调整生成的行程吗？</h3>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </div>
+                        <div class="faq-answer px-6 pb-6 hidden">
+                            <p class="text-gray-600">
+                                当然可以！在行程结果页面，您可以：
+                            </p>
+                            <ul class="list-disc pl-5 mt-2 text-gray-600 space-y-1">
+                                <li>拖拽调整景点顺序</li>
+                                <li>添加或移除景点</li>
+                                <li>修改景点停留时间</li>
+                                <li>调整行程天数</li>
+                                <li>重新生成行程</li>
+                            </ul>
+                            <p class="text-gray-600 mt-2">
+                                所有修改会实时反映在您的行程中，您可以随时保存最新版本。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ 项目 5 -->
+                    <div class="faq-item">
+                        <div class="faq-question p-6 cursor-pointer flex justify-between items-center">
+                            <h3 class="font-medium text-gray-800">如何导出和分享我的行程？</h3>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+                        </div>
+                        <div class="faq-answer px-6 pb-6 hidden">
+                            <p class="text-gray-600">
+                                在行程结果页面，您可以使用以下功能：
+                            </p>
+                            <ul class="list-disc pl-5 mt-2 text-gray-600 space-y-1">
+                                <li>点击"导出PDF"生成可打印的行程文档</li>
+                                <li>选择"导出JSON"保存行程数据</li>
+                                <li>使用"分享行程"功能获取可分享的链接</li>
+                                <li>通过社交媒体按钮直接分享到微信、微博等平台</li>
+                            </ul>
+                            <p class="text-gray-600 mt-2">
+                                分享链接生成后，您的朋友无需注册即可查看您的行程详情。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 分类帮助 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <a href="#" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+                    <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa fa-question-circle text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-medium text-gray-800 mb-2">入门指南</h3>
+                    <p class="text-gray-500 text-sm">新手必读，快速了解如何使用我们的服务</p>
+                </a>
+                
+                <a href="#" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+                    <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa fa-map-o text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-medium text-gray-800 mb-2">行程规划</h3>
+                    <p class="text-gray-500 text-sm">了解如何获取最精准的行程建议</p>
+                </a>
+                
+                <a href="#" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+                    <div class="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa fa-cog text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-medium text-gray-800 mb-2">高级功能</h3>
+                    <p class="text-gray-500 text-sm">深入了解系统的高级特性和使用技巧</p>
+                </a>
+            </div>
+            
+            <!-- 联系支持 -->
+            <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">需要更多帮助？</h2>
+                <p class="text-gray-600 mb-6">
+                    如果您的问题没有在帮助中心得到解答，请联系我们的客服团队
+                </p>
+                <a href="mailto:support@zhiyouzhongguo.com" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fa fa-envelope mr-2"></i> 联系客服
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">智游中国</h3>
+                    <p class="text-gray-400 text-sm">为您提供智能、精准、个性化的旅游路线规划服务</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">快速链接</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="{{ url_for('index') }}" class="hover:text-white transition-colors">首页</a></li>
+                        <li><a href="{{ url_for('about') }}" class="hover:text-white transition-colors">关于我们</a></li>
+                        <li><a href="{{ url_for('help_page') }}" class="hover:text-white transition-colors">帮助中心</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">服务支持</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">常见问题</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">使用指南</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">联系我们</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">关注我们</h3>
+                    <div class="flex space-x-4 text-gray-400">
+                        <a href="#" class="hover:text-white text-xl transition-colors"><i class="fa fa-weixin"></i></a>
+                        <a href="#" class="hover:text-white text-xl transition-colors"><i class="fa fa-weibo"></i></a>
+                        <a href="#" class="hover:text-white text-xl transition-colors"><i class="fa fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-500 text-sm">
+                <p>© 2023 智游中国. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="fixed bottom-8 right-8 bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        // FAQ 展开/收起功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // FAQ 切换功能
+            const faqItems = document.querySelectorAll('.faq-item');
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                const answer = item.querySelector('.faq-answer');
+                const icon = question.querySelector('i');
+                
+                question.addEventListener('click', () => {
+                    // 切换显示状态
+                    answer.classList.toggle('hidden');
+                    // 旋转图标
+                    icon.classList.toggle('transform');
+                    icon.classList.toggle('rotate-180');
+                });
+            });
+            
+            // 移动端菜单
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 返回顶部按钮
+            const backToTopButton = document.getElementById('back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.remove('opacity-0', 'invisible');
+                    backToTopButton.classList.add('opacity-100', 'visible');
+                } else {
+                    backToTopButton.classList.remove('opacity-100', 'visible');
+                    backToTopButton.classList.add('opacity-0', 'invisible');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>

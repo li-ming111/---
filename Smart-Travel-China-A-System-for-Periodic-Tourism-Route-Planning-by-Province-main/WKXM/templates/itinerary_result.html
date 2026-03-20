@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智游中国 - 行程规划结果</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <!-- 高德地图 JS API -->
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key={{ amap_key }}"></script>
+    
+    <!-- 配置Tailwind自定义主题 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CBCB',
+                        accent: '#FF7D00',
+                        dark: '#1D2129',
+                        light: '#F2F3F5',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 16px rgba(0, 0, 0, 0.08)',
+                        'card-hover': '0 8px 24px rgba(0, 0, 0, 0.12)',
+                    }
+                },
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .backdrop-blur {
+                backdrop-filter: blur(8px);
+            }
+            .text-shadow {
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .timeline-line {
+                position: absolute;
+                left: 0.75rem;
+                top: 0;
+                width: 0.125rem;
+                height: 100%;
+                background-color: #e5e7eb;
+                z-index: -10;
+            }
+            .timeline-dot {
+                width: 1.25rem;
+                height: 1.25rem;
+                border-radius: 9999px;
+                background-color: #007bff;
+                border-width: 0.125rem;
+                border-color: #ffffff;
+            }
+            .timeline-dot-dark {
+                width: 1.25rem;
+                height: 1.25rem;
+                border-radius: 9999px;
+                background-color: #333333;
+                border-width: 0.125rem;
+                border-color: #ffffff;
+            }
+            .timeline-dot-past {
+                width: 1.25rem;
+                height: 1.25rem;
+                border-radius: 9999px;
+                background-color: #9ca3af;
+                border-width: 0.125rem;
+                border-color: #ffffff;
+            }
+        }
+    </style>
+    
+    <!-- 全局样式 -->
+    <style>
+        body {
+            scroll-behavior: smooth;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* 进度条动画 */
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        /* 地图容器样式 */
+        #map-container {
+            height: 400px;
+            width: 100%;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        /* 景点卡片悬停效果 */
+        .spot-card:hover {
+            transform: translateY(-4px);
+            transition: transform 0.3s ease;
+        }
+        
+        /* 导航标签样式 */
+        .nav-tab {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab.active {
+            color: #165DFF;
+            border-bottom: 2px solid #165DFF;
+        }
+        
+        /* 动画效果 */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 导航栏 -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur shadow-sm transition-all duration-300">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <!-- 品牌标识 -->
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                        <i class="fa fa-paper-plane-o text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-dark">智游中国</h1>
+                        <p class="text-xs text-gray-500">省域周期性旅游路线规划系统</p>
+                    </div>
+                </div>
+                
+                <!-- 导航菜单 -->
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="/" class="text-gray-600 hover:text-primary transition-colors">首页</a>
+                    <a href="#" class="text-primary font-medium">我的行程</a>
+                    <a href="/" class="text-gray-600 hover:text-primary transition-colors">重新规划</a>
+                </nav>
+                
+                <!-- 移动端菜单按钮 -->
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端导航菜单 -->
+        <div class="hidden md:hidden bg-white border-t" id="mobile-menu">
+            <div class="container mx-auto px-4 py-2">
+                <nav class="flex flex-col space-y-3 py-2">
+                    <a href="/" class="text-gray-600 hover:text-primary transition-colors py-2">首页</a>
+                    <a href="#" class="text-primary font-medium py-2">我的行程</a>
+                    <a href="/" class="text-gray-600 hover:text-primary transition-colors py-2">重新规划</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- 行程概览 -->
+        <section class="bg-white py-10">
+            <div class="container mx-auto px-4">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-dark mb-2">
+                                {{ destination }} 行程规划
+                            </h1>
+                            <p class="text-gray-600">
+                                {{ total_days }}天行程 · {{ preferences_str }} · 生成时间: {{ generation_time }}
+                            </p>
+                        </div>
+                        
+                        <!-- 操作按钮组 -->
+                        <div class="flex space-x-3 mt-4 md:mt-0">
+                            <button id="export-json" class="inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                                <i class="fa fa-download mr-2"></i>
+                                <span class="hidden sm:inline">导出JSON</span>
+                                <span class="sm:hidden">JSON</span>
+                            </button>
+                            
+                            <button id="export-text" class="inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                                <i class="fa fa-file-text-o mr-2"></i>
+                                <span class="hidden sm:inline">导出文本</span>
+                                <span class="sm:hidden">文本</span>
+                            </button>
+                            
+                            <button id="share-itinerary" class="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                                <i class="fa fa-share-alt mr-2"></i>
+                                <span class="hidden sm:inline">分享行程</span>
+                                <span class="sm:hidden">分享</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 季节与旅行建议 -->
+                    <div class="bg-blue-50 rounded-xl p-6 mb-8">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fa fa-info-circle text-primary"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">季节与旅行建议</h3>
+                                <p class="text-gray-700">
+                                    当前处于{{ seasonal_info.current_season }}，{{ seasonal_info.season_suggestion }}。
+                                    {{ seasonal_info.city_suggestion }}。
+                                </p>
+                                
+                                <div class="flex flex-wrap gap-3 mt-4">
+                                    {% for tip in seasonal_info.tips %}
+                                    <div class="inline-flex items-center px-3 py-1.5 bg-white rounded-lg shadow-sm">
+                                        <i class="fa fa-lightbulb-o text-warning mr-2"></i>
+                                        <span class="text-sm text-gray-700">{{ tip }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 行程内容 -->
+        <section class="py-10">
+            <div class="container mx-auto px-4">
+                <div class="max-w-6xl mx-auto">
+                    <!-- 新的行程数据显示容器 -->
+                    <div id="itinerary-content" class="mb-8"></div>
+                    
+                    <!-- 原有导航标签（保留兼容性） -->
+                    <div class="border-b border-gray-200 mb-8 overflow-x-auto scrollbar-hide">
+                        <div class="flex space-x-8 min-w-max">
+                            <button class="nav-tab active px-1 py-4 text-sm font-medium" data-target="overview">
+                                行程概览
+                            </button>
+                            {% for day in itinerary.daily_itineraries %}
+                            <button class="nav-tab px-1 py-4 text-sm font-medium" data-target="day-{{ day.day }}">
+                                第{{ day.day }}天
+                            </button>
+                            {% endfor %}
+                            <button class="nav-tab px-1 py-4 text-sm font-medium" data-target="travel-tips">
+                                旅行贴士
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 行程概览内容 -->
+                    <div id="overview-content" class="tab-content fade-in block">
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <!-- 左侧：景点分布图 -->
+                            <div class="md:col-span-2">
+                                <div class="bg-white rounded-xl shadow-card p-4 md:p-6 h-full">
+                                    <h3 class="text-xl font-semibold mb-4">行程地图</h3>
+                                    <div id="map-container"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 右侧：行程统计 -->
+                            <div class="space-y-6">
+                                <!-- 统计卡片 -->
+                                <div class="bg-white rounded-xl shadow-card p-6">
+                                    <h3 class="text-xl font-semibold mb-4">行程统计</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-600">总景点数</span>
+                                            <span class="text-xl font-bold text-primary">{{ stats.total_spots }}</span>
+                                        </div>
+                                        <div class="h-0.5 bg-gray-100"></div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-600">自然风光</span>
+                                            <span class="font-semibold">{{ stats.nature_spots }}个</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-600">历史文化</span>
+                                            <span class="font-semibold">{{ stats.culture_spots }}个</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-600">特色体验</span>
+                                            <span class="font-semibold">{{ stats.experience_spots }}个</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 美食推荐 -->
+                                <div class="bg-white rounded-xl shadow-card p-6">
+                                    <h3 class="text-xl font-semibold mb-4">特色美食</h3>
+                                    <div class="space-y-3">
+                                        {% for food in itinerary.food_recommendations %}
+                                        <div class="flex items-start space-x-3">
+                                            <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                                <i class="fa fa-cutlery text-amber-500"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-medium">{{ food.name }}</h4>
+                                                <p class="text-sm text-gray-600 line-clamp-2">{{ food.description }}</p>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 每日行程摘要 -->
+                        <div class="mt-10">
+                            <h2 class="text-2xl font-bold text-dark mb-6">每日行程摘要</h2>
+                            <div class="space-y-6">
+                                {% for day in itinerary.daily_itineraries %}
+                                <div class="bg-white rounded-xl shadow-card overflow-hidden hover:shadow-card-hover transition-all duration-300">
+                                    <div class="border-b border-gray-100">
+                                        <div class="p-6">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h3 class="text-xl font-semibold">第{{ day.day }}天行程</h3>
+                                                <span class="px-3 py-1 bg-blue-100 text-primary text-sm rounded-full">{{ day.summary }}</span>
+                                            </div>
+                                            <p class="text-gray-600">
+                                                {{ day.description }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="p-6">
+                                        <h4 class="font-medium text-gray-700 mb-3">今日景点</h4>
+                                        <div class="flex flex-wrap gap-3">
+                                            {% for spot in day.spots %}
+                                            <div class="inline-flex items-center px-3 py-1.5 bg-gray-100 rounded-lg">
+                                                <span class="text-sm text-gray-700">{{ spot.name }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        
+                                        <div class="mt-6 flex justify-between items-center">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                                                    <i class="fa fa-bed text-green-600"></i>
+                                                </div>
+                                                <span class="text-sm text-gray-700">{{ day.accommodation_suggestion }}</span>
+                                            </div>
+                                            <button class="view-day-detail px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors" data-day="{{ day.day }}">
+                                                查看详情
+                                                <i class="fa fa-angle-right ml-1"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 每日行程详情 (初始隐藏) -->
+                    {% for day in itinerary.daily_itineraries %}
+                    <div id="day-{{ day.day }}-content" class="tab-content fade-in hidden">
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-2xl font-bold text-dark">第{{ day.day }}天行程</h2>
+                                <span class="px-4 py-1 bg-blue-100 text-primary rounded-lg">
+                                    {{ day.summary }}
+                                </span>
+                            </div>
+                            <p class="text-gray-600 mt-2">{{ day.description }}</p>
+                        </div>
+                        
+                        <!-- 行程时间表 -->
+                        <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+                            <h3 class="text-xl font-semibold mb-6">行程时间表</h3>
+                            
+                            <!-- 时间线 -->
+                            <div class="relative">
+                                <!-- 时间线 - 连接线 -->
+                                <div class="timeline-line"></div>
+                                
+                                {% for item in day.schedule %}
+                                <div class="ml-10 mb-10 relative">
+                                    <!-- 时间点 -->
+                                    <div class="absolute left-[-42px] top-0 timeline-dot"></div>
+                                    
+                                    <!-- 时间 -->
+                                    <div class="absolute left-[-92px] top-0 w-28 text-right">
+                                        <span class="text-sm font-semibold text-gray-700">{{ item.arrival_time }}</span>
+                                        <p class="text-xs text-gray-500">至 {{ item.departure_time }}</p>
+                                    </div>
+                                    
+                                    <!-- 内容 -->
+                                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all">
+                                        <h4 class="text-lg font-semibold mb-2">{{ item.spot.name }}</h4>
+                                        <div class="flex flex-wrap gap-2 mb-3">
+                                            <span class="px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                                {{ item.spot.type }}
+                                            </span>
+                                            <span class="px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                                游玩{{ item.duration_hours }}小时
+                                            </span>
+                                            {% if item.transportation %}
+                                            <span class="px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                                <i class="fa fa-bus mr-1"></i>{{ item.transportation }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if item.spot.visit_tips %}
+                                        <div class="mb-4">
+                                            <h5 class="text-sm font-medium text-gray-700 mb-1">游览提示</h5>
+                                            <p class="text-sm text-gray-600">{{ item.spot.visit_tips }}</p>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if item.spot.highlights %}
+                                        <div class="mb-3">
+                                            <h5 class="text-sm font-medium text-gray-700 mb-1">主要看点</h5>
+                                            <div class="flex flex-wrap gap-2">
+                                                {% for highlight in item.spot.highlights %}
+                                                <span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
+                                                    {{ highlight }}
+                                                </span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- 住宿与餐饮建议 -->
+                        <div class="grid md:grid-cols-2 gap-6 mb-8">
+                            <!-- 住宿建议 -->
+                            <div class="bg-white rounded-xl shadow-card p-6">
+                                <h3 class="text-xl font-semibold mb-4">住宿建议</h3>
+                                <div class="flex items-start space-x-4 mb-4">
+                                    <div class="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+                                        <i class="fa fa-bed text-green-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium mb-1">{{ day.accommodation_suggestion }}</h4>
+                                        <p class="text-sm text-gray-600">{{ day.accommodation_details }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h5 class="text-sm font-medium text-gray-700 mb-2">推荐住宿区域</h5>
+                                    <div class="space-y-2">
+                                        {% for area in day.accommodation_areas %}
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 rounded-full bg-primary mr-2"></div>
+                                            <span class="text-sm text-gray-700">{{ area.name }}</span>
+                                            <span class="ml-auto text-xs text-gray-500">{{ area.price_range }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 餐饮建议 -->
+                            <div class="bg-white rounded-xl shadow-card p-6">
+                                <h3 class="text-xl font-semibold mb-4">餐饮建议</h3>
+                                
+                                {% for dining in day.dining_suggestions %}
+                                <div class="mb-4 last:mb-0">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fa fa-cutlery text-amber-500 mr-2"></i>
+                                        <h4 class="font-medium">{{ dining.time_of_day }}</h4>
+                                    </div>
+                                    <div class="ml-6 space-y-2">
+                                        {% for option in dining.options %}
+                                        <div class="bg-gray-50 rounded-lg p-3">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="font-medium text-sm">{{ option.name }}</span>
+                                                <span class="text-xs text-gray-500">{{ option.type }}</span>
+                                            </div>
+                                            <p class="text-xs text-gray-600">{{ option.description }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- 穿衣指南 -->
+                        <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+                            <h3 class="text-xl font-semibold mb-4">穿衣指南</h3>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa fa-sun-o text-yellow-500 text-xl"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-4 mb-2">
+                                        <span class="text-lg font-semibold">{{ day.weather.temperature_range }}</span>
+                                        <span class="text-gray-600">{{ day.weather.condition }}</span>
+                                    </div>
+                                    <p class="text-gray-700 mb-3">
+                                        {{ day.dressing_advice }}
+                                    </p>
+                                    
+                                    <div class="flex flex-wrap gap-2">
+                                        {% for item in day.dressing_items %}
+                                        <div class="inline-flex items-center px-3 py-1.5 bg-gray-100 rounded-lg">
+                                            <span class="text-sm text-gray-700">{{ item }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 交通建议 -->
+                        <div class="bg-white rounded-xl shadow-card p-6">
+                            <h3 class="text-xl font-semibold mb-4">市内交通建议</h3>
+                            <div class="space-y-4">
+                                {% for transport in day.transportation_suggestions %}
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                        <i class="fa {{ transport.icon }} text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium mb-1">{{ transport.type }}</h4>
+                                        <p class="text-sm text-gray-600">{{ transport.description }}</p>
+                                        {% if transport.tips %}
+                                        <div class="mt-2 text-xs text-gray-500 italic">
+                                            <i class="fa fa-info-circle mr-1"></i>
+                                            {{ transport.tips }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- 旅行贴士 -->
+                    <div id="travel-tips-content" class="tab-content fade-in hidden">
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <!-- 左侧 -->
+                            <div class="space-y-6">
+                                <!-- 行前准备 -->
+                                <div class="bg-white rounded-xl shadow-card p-6">
+                                    <h3 class="text-xl font-semibold mb-4">行前准备</h3>
+                                    <div class="space-y-3">
+                                        {% for item in itinerary.packing_suggestions %}
+                                        <div class="flex items-start">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center mr-3 mt-0.5">
+                                                <div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-medium text-gray-800">{{ item.category }}</h4>
+                                                <p class="text-sm text-gray-600">{{ item.description }}</p>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <!-- 当地习俗 -->
+                                <div class="bg-white rounded-xl shadow-card p-6">
+                                    <h3 class="text-xl font-semibold mb-4">当地习俗与文化</h3>
+                                    <div class="space-y-3">
+                                        {% for custom in itinerary.local_customs %}
+                                        <div class="flex items-start">
+                                            <i class="fa fa-book text-gray-400 mr-3 mt-1"></i>
+                                            <p class="text-sm text-gray-700">{{ custom }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <!-- 支付方式 -->
+                                <div class="bg-white rounded-xl shadow-card p-6">
+                                    <h3 class="text-xl font-semibold mb-4">支付方式</h3>
+                                    <div class="space-y-3">
+                                        {% for payment in itinerary.payment_methods %}
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mr-3">
+                                                <i class="fa fa-credit-card text-gray-600"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-medium text-gray-800">{{ payment.name }}</h4>
+                                                <p class="text-xs text-gray-500">{{ payment.description }}</p>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 右侧 -->
+                            <div class="space-y-6">
+                                <!-- 紧急联系 -->
+                                <div class="bg-white rounded-xl shadow-card p-6">
+                                    <h3 class="text-xl font-semibold mb-4">紧急联系</h3>
+                                    <div class="space-y-3">
+                                        {% for contact in itinerary.emergency_contacts %}
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center mr-3">
+                                                    <i class="fa fa-phone text-red-500"></i>
+                                                </div>
+                                                <span class="text-gray-800">{{ contact.name }}</span>
+                                            </div>
+                                            <span class="font-medium text-gray-800">{{ contact.phone }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <!-- 旅行贴士 -->
+                                <div class="bg-white rounded-xl shadow-card p-6">
+                                    <h3 class="text-xl font-semibold mb-4">实用贴士</h3>
+                                    <div class="space-y-4">
+                                        {% for tip in itinerary.travel_tips %}
+                                        <div class="flex">
+                                            <div class="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                                                <i class="fa fa-check text-green-600 text-xs"></i>
+                                            </div>
+                                            <p class="text-sm text-gray-700">{{ tip }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <!-- 常见问题 -->
+                                <div class="bg-white rounded-xl shadow-card p-6">
+                                    <h3 class="text-xl font-semibold mb-4">常见问题</h3>
+                                    <div class="space-y-4">
+                                        {% for faq in itinerary.frequently_asked_questions %}
+                                        <div>
+                                            <div class="flex items-center cursor-pointer question-toggle">
+                                                <i class="fa fa-chevron-down text-gray-400 transition-transform duration-300 mr-3"></i>
+                                                <h4 class="font-medium text-gray-800">{{ faq.question }}</h4>
+                                            </div>
+                                            <div class="ml-6 mt-2 text-sm text-gray-600 hidden question-answer">
+                                                {{ faq.answer }}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12 mt-20">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <!-- 关于我们 -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">关于智游中国</h3>
+                    <p class="text-gray-400 text-sm">
+                        智游中国是一款基于AI技术的智能旅游规划系统，致力于为游客提供个性化、便捷的旅行规划服务。
+                    </p>
+                </div>
+                
+                <!-- 功能链接 -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">功能服务</h3>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">城市行程规划</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">景点智能推荐</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">本地美食推荐</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">住宿交通建议</a></li>
+                    </ul>
+                </div>
+                
+                <!-- 帮助中心 -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">帮助中心</h3>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">使用指南</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">常见问题</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">服务条款</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">隐私政策</a></li>
+                    </ul>
+                </div>
+                
+                <!-- 关注我们 -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">关注我们</h3>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fa fa-weixin"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fa fa-qq"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fa fa-envelope-o"></i>
+                        </a>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        扫描二维码，关注公众号获取更多旅行资讯
+                    </p>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
+                <p>© 2025 智游中国 版权所有 | 京ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- 模态框 -->
+    <div id="share-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center opacity-0 invisible transition-all duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 mx-4 transform translate-y-10 transition-transform duration-300">
+            <div class="text-center mb-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-2">分享行程</h3>
+                <p class="text-gray-600">通过以下方式分享您的行程规划</p>
+            </div>
+            
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <button class="flex flex-col items-center justify-center p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-colors">
+                    <i class="fa fa-weibo text-red-500 text-2xl mb-2"></i>
+                    <span class="text-xs text-gray-700">微博</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-3 rounded-xl bg-green-50 hover:bg-green-100 transition-colors">
+                    <i class="fa fa-weixin text-green-600 text-2xl mb-2"></i>
+                    <span class="text-xs text-gray-700">微信</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors">
+                    <i class="fa fa-qq text-blue-500 text-2xl mb-2"></i>
+                    <span class="text-xs text-gray-700">QQ</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <i class="fa fa-link text-gray-500 text-2xl mb-2"></i>
+                    <span class="text-xs text-gray-700">复制链接</span>
+                </button>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-16 h-16 rounded overflow-hidden">
+                        <img src="https://picsum.photos/id/1015/100/100" alt="行程预览" class="w-full h-full object-cover">
+                    </div>
+                    <div class="ml-3">
+                        <h4 class="font-medium text-gray-900 text-sm">
+                            {{ destination }} {{ total_days }}天行程
+                        </h4>
+                        <p class="text-xs text-gray-500 mt-1">
+                            分享自智游中国
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="close-share-modal" class="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors">
+                关闭
+            </button>
+        </div>
+    </div>
+    
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300 z-50">
+        <i class="fa fa-chevron-up"></i>
+    </button>
+    
+    <!-- 引入行程显示组件 -->
+    <script src="{{ url_for('static', filename='js/itinerary-display.js') }}"></script>
+    
+    <!-- JavaScript -->
+    <script>
+        // 移动端菜单切换
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            // 切换图标
+            const icon = mobileMenuButton.querySelector('i');
+            if (mobileMenu.classList.contains('hidden')) {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            } else {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            }
+        });
+        
+        // 返回顶部按钮
+        const backToTopButton = document.getElementById('back-to-top');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopButton.classList.remove('opacity-0', 'invisible');
+                backToTopButton.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopButton.classList.remove('opacity-100', 'visible');
+                backToTopButton.classList.add('opacity-0', 'invisible');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 标签页切换
+        const tabs = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有激活状态
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                    content.classList.remove('block');
+                });
+                
+                // 添加当前激活状态
+                tab.classList.add('active');
+                const target = tab.getAttribute('data-target');
+                const content = document.getElementById(`${target}-content`);
+                if (content) {
+                    content.classList.remove('hidden');
+                    content.classList.add('block');
+                }
+            });
+        });
+        
+        // 常见问题切换
+        const questionToggles = document.querySelectorAll('.question-toggle');
+        
+        questionToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const icon = toggle.querySelector('i');
+                const answer = toggle.nextElementSibling;
+                
+                icon.classList.toggle('rotate-180');
+                answer.classList.toggle('hidden');
+            });
+        });
+        
+        // 查看每日详情按钮
+        const viewDayButtons = document.querySelectorAll('.view-day-detail');
+        
+        viewDayButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const day = button.getAttribute('data-day');
+                
+                // 切换到对应的标签
+                tabs.forEach(tab => {
+                    if (tab.getAttribute('data-target') === `day-${day}`) {
+                        tab.click();
+                        // 滚动到标签内容区域
+                        const content = document.getElementById(`day-${day}-content`);
+                        if (content) {
+                            content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                });
+            });
+        });
+        
+        // 分享模态框
+        const shareButton = document.getElementById('share-itinerary');
+        const shareModal = document.getElementById('share-modal');
+        const closeShareModal = document.getElementById('close-share-modal');
+        
+        function openModal() {
+            shareModal.classList.remove('opacity-0', 'invisible');
+            shareModal.querySelector('.transform').classList.remove('translate-y-10');
+        }
+        
+        function closeModal() {
+            shareModal.classList.add('opacity-0', 'invisible');
+            shareModal.querySelector('.transform').classList.add('translate-y-10');
+        }
+        
+        shareButton.addEventListener('click', openModal);
+        closeShareModal.addEventListener('click', closeModal);
+        
+        // 点击模态框外部关闭
+        shareModal.addEventListener('click', (e) => {
+            if (e.target === shareModal) {
+                closeModal();
+            }
+        });
+        
+        // 导出功能
+        document.getElementById('export-json').addEventListener('click', () => {
+            // 在实际实现中，这里会导出行程的JSON数据
+            alert('行程JSON数据已导出');
+        });
+        
+        document.getElementById('export-text').addEventListener('click', () => {
+            // 在实际实现中，这里会导出行程的文本版本
+            alert('行程文本数据已导出');
+        });
+        
+        // 初始化地图
+        function initMap() {
+            // 这里会使用高德地图API初始化行程地图
+            // 实际实现中，会根据行程数据添加标记点和路线
+            // 由于需要API密钥，这里提供框架代码
+            
+            // 示例代码:
+            /*
+            var map = new AMap.Map('map-container', {
+                zoom: 13,
+                center: [100.25, 25.62] // 大理市坐标示例
+            });
+            
+            // 添加标记点
+            itinerary.daily_itineraries.forEach(function(day) {
+                day.schedule.forEach(function(item) {
+                    var marker = new AMap.Marker({
+                        position: [item.spot.location.longitude, item.spot.location.latitude],
+                        title: item.spot.name,
+                        map: map
+                    });
+                });
+            });
+            */
+        }
+        
+        // 加载并显示行程数据
+        function loadItineraryData() {
+            // 检查是否有行程数据
+            const itineraryData = {{ data|tojson if data else '{}' }};
+            console.log('加载行程数据:', itineraryData);
+            
+            if (itineraryData && itineraryData.success) {
+                // 使用新的显示组件
+                const display = new ItineraryDisplay('itinerary-content');
+                display.renderItinerary(itineraryData);
+            } else {
+                // 显示原始数据或错误信息
+                const container = document.getElementById('itinerary-content');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="error-container p-8 text-center bg-yellow-50 rounded-xl border border-yellow-200">
+                            <i class="fa fa-info-circle text-yellow-500 text-4xl mb-4"></i>
+                            <h3 class="text-xl font-semibold text-yellow-800 mb-2">数据加载中...</h3>
+                            <p class="text-yellow-600">请稍候，正在准备您的行程规划。</p>
+                            <div class="mt-4 text-xs text-yellow-500">原始数据：${JSON.stringify(itineraryData, null, 2)}</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // 页面加载完成后初始化地图和行程数据
+        window.addEventListener('load', () => {
+            initMap();
+            loadItineraryData();
+        });
+    </script>
+</body>
+</html>

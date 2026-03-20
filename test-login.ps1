@@ -1,0 +1,2 @@
+$body = '{"username":"2023020616","password":"123456","schoolCode":"HIIE"}';
+Invoke-WebRequest -Uri "http://localhost:8082/api/auth/login" -Method POST -Body $body -ContentType "application/json" -UseBasicParsing

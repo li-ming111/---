@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行程显示组件测试</title>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-8 text-center">行程显示组件测试</h1>
+        
+        <!-- 行程数据显示容器 -->
+        <div id="itinerary-content"></div>
+    </div>
+
+    <!-- 引入行程显示组件 -->
+    <script src="{{ url_for('static', filename='js/itinerary-display.js') }}"></script>
+    
+    <script>
+        // 测试数据
+        const testData = {
+            "success": true,
+            "destination": "北京",
+            "total_days": 3,
+            "preferences_str": "历史文化, 美食",
+            "generation_time": "2025-11-24 15:50:00",
+            "itinerary_data": {
+                "stats": {
+                    "estimated_budget": "3000元/人",
+                    "best_season": "春秋两季"
+                },
+                "daily_itineraries": [
+                    {
+                        "day": 1,
+                        "summary": "抵达北京，游览天安门广场和故宫博物院",
+                        "description": "上午游览天安门广场，下午参观故宫博物院，感受皇家建筑的恢弘气势",
+                        "weather": {
+                            "temperature_range": "15-20°C",
+                            "condition": "晴朗"
+                        },
+                        "dressing_advice": "建议穿轻薄外套，早晚温差较大",
+                        "dressing_items": ["薄外套", "长裤", "舒适鞋子"],
+                        "accommodation_suggestion": "前门大街附近酒店",
+                        "accommodation_details": "交通便利，步行可达天安门广场",
+                        "accommodation_areas": [
+                            {"name": "前门大街", "price_range": "300-500元/晚"},
+                            {"name": "王府井", "price_range": "400-600元/晚"}
+                        ],
+                        "spots": [
+                            {
+                                "name": "天安门广场",
+                                "type": "历史文化",
+                                "visit_tips": "建议早上前往，避开人流高峰"
+                            },
+                            {
+                                "name": "故宫博物院",
+                                "type": "历史文化",
+                                "visit_tips": "建议提前网上预约门票"
+                            }
+                        ],
+                        "dining_suggestions": [
+                            {
+                                "time_of_day": "早餐",
+                                "options": [
+                                    {
+                                        "name": "全聚德烤鸭店",
+                                        "type": "传统北京菜",
+                                        "description": "正宗北京烤鸭，口感鲜美"
+                                    }
+                                ]
+                            },
+                            {
+                                "time_of_day": "午餐",
+                                "options": [
+                                    {
+                                        "name": "东来顺涮羊肉",
+                                        "type": "火锅",
+                                        "description": "百年老店，涮羊肉非常著名"
+                                    }
+                                ]
+                            }
+                        ],
+                        "schedule": [
+                            {
+                                "arrival_time": "09:00",
+                                "spot": {"name": "天安门广场"},
+                                "transportation": "地铁"
+                            },
+                            {
+                                "arrival_time": "14:00",
+                                "spot": {"name": "故宫博物院"},
+                                "transportation": "步行"
+                            }
+                        ],
+                        "visit_tips": "建议购买故宫门票时选择语音导览"
+                    },
+                    {
+                        "day": 2,
+                        "summary": "游览长城和明十三陵",
+                        "description": "全天游览万里长城，体验古代防御工程的壮观",
+                        "weather": {
+                            "temperature_range": "12-18°C",
+                            "condition": "多云"
+                        },
+                        "dressing_advice": "建议穿保暖外套，山上风力较大",
+                        "dressing_items": ["保暖外套", "防风帽", "舒适登山鞋"],
+                        "accommodation_suggestion": "继续入住前门附近酒店",
+                        "accommodation_details": "方便前往长城和市区",
+                        "accommodation_areas": [
+                            {"name": "前门大街", "price_range": "300-500元/晚"}
+                        ],
+                        "spots": [
+                            {
+                                "name": "八达岭长城",
+                                "type": "历史遗迹",
+                                "visit_tips": "建议选择缆车上下山，节省体力"
+                            },
+                            {
+                                "name": "明十三陵",
+                                "type": "历史遗迹",
+                                "visit_tips": "下午前往，避开中午时分"
+                            }
+                        ],
+                        "dining_suggestions": [
+                            {
+                                "time_of_day": "早餐",
+                                "options": [
+                                    {
+                                        "name": "酒店自助早餐",
+                                        "type": "中西式",
+                                        "description": "营养丰富，为一天行程储备能量"
+                                    }
+                                ]
+                            },
+                            {
+                                "time_of_day": "午餐",
+                                "options": [
+                                    {
+                                        "name": "长城脚下山庄",
+                                        "type": "农家菜",
+                                        "description": "品尝当地特色农家菜"
+                                    }
+                                ]
+                            }
+                        ],
+                        "schedule": [
+                            {
+                                "arrival_time": "08:00",
+                                "spot": {"name": "八达岭长城"},
+                                "transportation": "旅游巴士"
+                            },
+                            {
+                                "arrival_time": "15:00",
+                                "spot": {"name": "明十三陵"},
+                                "transportation": "旅游巴士"
+                            }
+                        ],
+                        "visit_tips": "长城游览建议穿防滑鞋，注意安全"
+                    }
+                ]
+            }
+        };
+        
+        // 页面加载完成后测试显示组件
+        window.addEventListener('load', () => {
+            console.log('开始测试行程显示组件');
+            
+            // 创建显示实例
+            const display = new ItineraryDisplay('itinerary-content');
+            
+            // 渲染测试数据
+            display.renderItinerary(testData);
+            
+            console.log('行程显示组件测试完成');
+        });
+    </script>
+</body>
+</html>

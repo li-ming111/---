@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智游中国 - 智能旅行规划助手</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/static/css/style.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        error: '#F5222D',
+                        gray: {
+                            100: '#F7F8FA',
+                            200: '#E5E6EB',
+                            300: '#C9CDD4',
+                            400: '#86909C',
+                            500: '#4E5969',
+                            600: '#272E3B',
+                            700: '#1D2129',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .chat-bubble-user {
+                background-color: #165DFF;
+                color: #ffffff;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                max-width: 80%;
+            }
+            .chat-bubble-bot {
+                background-color: #ffffff;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                max-width: 80%;
+            }
+            .chat-avatar {
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: 9999px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .chat-container {
+                overflow-y: auto;
+                height: calc(100vh - 300px);
+                max-height: 600px;
+                background-color: #F7F8FA;
+                padding: 1rem;
+            }
+            .input-container {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 1rem;
+                background-color: #ffffff;
+                border-top: 1px solid #E5E6EB;
+            }
+            .chat-input {
+                flex: 1;
+                padding: 0.75rem 1rem;
+                border: 1px solid #C9CDD4;
+                border-radius: 9999px;
+                outline: none;
+            }
+            .chat-input:focus {
+                border-color: #165DFF;
+                box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.3);
+            }
+            .send-button {
+                background-color: #165DFF;
+                color: #ffffff;
+                padding: 0.75rem;
+                border-radius: 9999px;
+                transition: background-color 0.2s ease;
+            }
+            .send-button:hover {
+                background-color: rgba(22, 93, 255, 0.9);
+            }
+            .quick-action-btn {
+                padding: 0.5rem 1rem;
+                border-radius: 9999px;
+                border: 1px solid #C9CDD4;
+                font-size: 0.875rem;
+                color: #4E5969;
+                transition: all 0.2s ease;
+            }
+            .quick-action-btn:hover {
+                background-color: #165DFF;
+                color: #ffffff;
+                border-color: #165DFF;
+            }
+            .preference-tag {
+                padding: 0.5rem 1rem;
+                border-radius: 9999px;
+                border: 1px solid #C9CDD4;
+                font-size: 0.875rem;
+                color: #4E5969;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .preference-tag:hover {
+                border-color: #165DFF;
+                color: #165DFF;
+            }
+            .preference-tag.selected {
+                background-color: #165DFF;
+                color: #ffffff;
+                border-color: #165DFF;
+            }
+            .tag-item {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.25rem 0.75rem;
+                background-color: #F7F8FA;
+                color: #272E3B;
+                border-radius: 9999px;
+                font-size: 0.875rem;
+                margin-right: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+            .remove-tag {
+                margin-left: 0.25rem;
+                color: #86909C;
+                cursor: pointer;
+            }
+            .remove-tag:hover {
+                color: #4E5969;
+            }
+            .animate-bounce {
+                animation: bounce 1.4s infinite;
+            }
+            @keyframes bounce {
+                0%, 100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-5px);
+                }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 导航栏 -->
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-paper-plane text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-700">智游中国</h1>
+            </div>
+            
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="/" class="text-primary font-medium">首页</a>
+                <a href="#features" class="text-gray-600 hover:text-primary transition-colors">功能特点</a>
+                <a href="#examples" class="text-gray-600 hover:text-primary transition-colors">行程案例</a>
+                <a href="#faq" class="text-gray-600 hover:text-primary transition-colors">常见问题</a>
+            </nav>
+            
+            <div class="flex items-center space-x-4">
+                <a href="#planning" class="hidden md:inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-colors">
+                    <i class="fa fa-map-marker mr-2"></i> 开始规划
+                </a>
+                
+                <button id="mobile-menu-button" class="md:hidden text-gray-500 hover:text-primary">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-100">
+            <div class="container mx-auto px-4 py-2">
+                <a href="/" class="block py-3 text-primary font-medium border-b border-gray-100">首页</a>
+                <a href="#features" class="block py-3 text-gray-600 hover:text-primary transition-colors border-b border-gray-100">功能特点</a>
+                <a href="#examples" class="block py-3 text-gray-600 hover:text-primary transition-colors border-b border-gray-100">行程案例</a>
+                <a href="#faq" class="block py-3 text-gray-600 hover:text-primary transition-colors">常见问题</a>
+                <a href="#planning" class="block py-4 mt-2 text-center text-white bg-primary rounded-lg font-medium">开始规划</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="container mx-auto px-4 pt-24 pb-16">
+        <!-- 英雄区块 -->
+        <section class="mb-20 text-center">
+            <h2 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-gray-800 mb-6">智能旅行规划助手</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-10">
+                只需告诉我们您想去的城市和旅行天数，选择您的旅行偏好，我们将为您生成个性化的详细旅行规划，让您的旅途更加便捷和愉快。
+            </p>
+            <div class="flex justify-center space-x-4">
+                <a href="#planning" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors">
+                    立即规划行程
+                </a>
+                <a href="#features" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                    了解更多
+                </a>
+            </div>
+        </section>
+
+        <!-- 规划表单部分 -->
+        <section id="planning" class="mb-20">
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-6 md:p-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">与旅行助手对话</h3>
+                    <p class="text-gray-600 mb-6">
+                        告诉我们您想去的城市、旅行天数和偏好，我们将为您生成个性化行程规划。
+                    </p>
+
+                    <!-- 隐藏的表单字段 -->
+                    <form id="planning-form" style="display: none;">
+                        <input type="hidden" id="province" value="">
+                        <input type="hidden" id="city" value="">
+                        <input type="hidden" id="days" value="3">
+                        <input type="hidden" id="travel_date" value="">
+                    </form>
+
+                    <!-- 对话界面 -->
+                    <div class="chat-container rounded-xl" id="chat-container">
+                        <!-- 初始化欢迎消息 -->
+                        <div class="flex items-start space-x-3">
+                            <div class="chat-avatar bg-primary/10">
+                                <i class="fa fa-robot text-primary"></i>
+                            </div>
+                            <div class="chat-bubble-bot">
+                                <p class="text-gray-700">您好！我是您的智能旅行规划助手。请问您计划去哪里旅行？请告诉我目的地城市名称。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 输入区域 -->
+                    <div class="input-container mt-4">
+                        <input type="text" id="chat-input" class="chat-input" placeholder="请输入您想去的城市...">
+                        <button id="send-message" class="send-button">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </div>
+
+                    <!-- 快捷操作按钮 -->
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <button class="quick-action-btn" data-action="city">修改城市</button>
+                        <button class="quick-action-btn" data-action="days">修改天数</button>
+                        <button class="quick-action-btn" data-action="preferences">修改偏好</button>
+                        <button class="quick-action-btn bg-primary text-white border-primary" data-action="generate">生成行程</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 功能特点 -->
+        <section id="features" class="mb-20">
+            <h3 class="text-3xl font-bold text-center text-gray-800 mb-12">为什么选择我们</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 特点1 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-5">
+                        <i class="fa fa-map-o text-primary text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-800 mb-3">个性化规划</h4>
+                    <p class="text-gray-600">
+                        根据您的偏好、兴趣和旅行天数，为您量身定制独特的旅行计划，确保您的旅程符合您的期望。
+                    </p>
+                </div>
+                
+                <!-- 特点2 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-5">
+                        <i class="fa fa-clock-o text-primary text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-800 mb-3">省时高效</h4>
+                    <p class="text-gray-600">
+                        告别繁琐的旅行规划过程，只需几分钟，我们就能为您生成一份详尽的行程安排，让您轻松出发。
+                    </p>
+                </div>
+                
+                <!-- 特点3 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-5">
+                        <i class="fa fa-lightbulb-o text-primary text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-800 mb-3">智能推荐</h4>
+                    <p class="text-gray-600">
+                        基于大数据和AI技术，为您推荐当地最值得游览的景点、美食和活动，让您的旅行更加丰富多彩。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+                    
+                    <!-- 问题4 -->
+                    <div class="faq-item">
+                        <div class="faq-question flex justify-between items-center cursor-pointer">
+                            <h4 class="text-lg font-medium text-gray-800">是否可以保存我的行程规划？</h4>
+                            <i class="fa fa-chevron-down text-gray-400 transition-transform"></i>
+                        </div>
+                        <div class="faq-answer text-gray-600 mt-3">
+                            是的，您可以将生成的行程保存到本地，或通过分享链接与朋友和家人分享您的行程规划。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fa fa-paper-plane text-primary text-2xl"></i>
+                        <h3 class="text-xl font-bold">智游中国</h3>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        智能旅行规划助手，让您的旅程更加便捷和愉快。
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-weibo text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-wechat text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-instagram text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4">功能</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">行程规划</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">景点推荐</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">美食攻略</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">住宿建议</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4">关于我们</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">公司介绍</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">联系我们</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">加入我们</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4">法律信息</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">隐私政策</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">服务条款</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-500">
+                <p>© 2025 智游中国. 保留所有权利。</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 回到顶部按钮 -->
+    <button id="back-to-top" class="fixed bottom-6 right-6 bg-primary text-white p-3 rounded-full shadow-lg opacity-0 invisible transition-all duration-300">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于我们 - 智游中国</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md fixed w-full z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{{ url_for('index') }}" class="flex items-center space-x-2">
+                <i class="fa fa-map-marker text-2xl text-blue-600"></i>
+                <span class="text-xl font-bold text-gray-800">智游中国</span>
+            </a>
+            <div class="hidden md:flex space-x-8">
+                <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-blue-600 transition-colors">首页</a>
+                <a href="{{ url_for('about') }}" class="text-blue-600 font-medium">关于我们</a>
+                <a href="{{ url_for('help_page') }}" class="text-gray-600 hover:text-blue-600 transition-colors">帮助中心</a>
+            </div>
+            <button class="md:hidden text-gray-600" id="mobile-menu-button">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div class="md:hidden hidden bg-white border-t" id="mobile-menu">
+            <div class="container mx-auto px-4 py-2">
+                <a href="{{ url_for('index') }}" class="block py-2 text-gray-600 hover:text-blue-600 transition-colors">首页</a>
+                <a href="{{ url_for('about') }}" class="block py-2 text-blue-600 font-medium">关于我们</a>
+                <a href="{{ url_for('help_page') }}" class="block py-2 text-gray-600 hover:text-blue-600 transition-colors">帮助中心</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="container mx-auto px-4 pt-28 pb-16">
+        <section class="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">关于智游中国</h1>
+            
+            <div class="prose max-w-none">
+                <h2 class="text-xl font-semibold text-gray-700 mt-8 mb-4">我们的使命</h2>
+                <p class="text-gray-600 leading-relaxed">
+                    智游中国致力于为旅行者提供个性化、智能化的旅游路线规划服务。我们相信每一次旅行都应该是独特而难忘的，因此我们开发了先进的城市级旅游路线规划系统，帮助您发现目的地的最佳体验。
+                </p>
+                
+                <h2 class="text-xl font-semibold text-gray-700 mt-8 mb-4">核心优势</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <i class="fa fa-map-o text-blue-600 text-2xl mb-2"></i>
+                        <h3 class="font-medium text-gray-800">城市级精准规划</h3>
+                        <p class="text-sm text-gray-600">精确到城市级别，为您提供最贴合目的地的旅行体验</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <i class="fa fa-calendar text-green-600 text-2xl mb-2"></i>
+                        <h3 class="font-medium text-gray-800">季节性优化</h3>
+                        <p class="text-sm text-gray-600">根据季节和天气推荐最适合的景点和活动</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <i class="fa fa-heart text-purple-600 text-2xl mb-2"></i>
+                        <h3 class="font-medium text-gray-800">个性化定制</h3>
+                        <p class="text-sm text-gray-600">根据您的兴趣偏好定制专属旅行计划</p>
+                    </div>
+                    <div class="bg-amber-50 p-4 rounded-lg">
+                        <i class="fa fa-clock-o text-amber-600 text-2xl mb-2"></i>
+                        <h3 class="font-medium text-gray-800">时间优化</h3>
+                        <p class="text-sm text-gray-600">科学安排行程，最大化利用您的旅行时间</p>
+                    </div>
+                </div>
+                
+                <h2 class="text-xl font-semibold text-gray-700 mt-8 mb-4">技术创新</h2>
+                <p class="text-gray-600 leading-relaxed">
+                    智游中国系统集成了多项先进技术：
+                </p>
+                <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                    <li>智能地理信息处理与分析</li>
+                    <li>基于机器学习的路线规划算法</li>
+                    <li>实时数据分析与季节性旅游推荐</li>
+                    <li>用户偏好学习与个性化推荐引擎</li>
+                    <li>交互式地图可视化技术</li>
+                </ul>
+                
+                <h2 class="text-xl font-semibold text-gray-700 mt-8 mb-4">团队介绍</h2>
+                <p class="text-gray-600 leading-relaxed">
+                    我们的团队由旅游专家、数据科学家、软件开发工程师和UI/UX设计师组成。我们热爱旅行，也热爱技术，致力于通过创新技术改变人们的旅行方式。
+                </p>
+                
+                <h2 class="text-xl font-semibold text-gray-700 mt-8 mb-4">联系我们</h2>
+                <div class="flex items-center space-x-4 text-gray-600">
+                    <a href="mailto:support@zhiyouzhongguo.com" class="flex items-center hover:text-blue-600 transition-colors">
+                        <i class="fa fa-envelope mr-2"></i> support@zhiyouzhongguo.com
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4 mt-3 text-gray-600">
+                    <a href="#" class="flex items-center hover:text-blue-600 transition-colors">
+                        <i class="fa fa-weixin mr-2"></i> 智游中国
+                    </a>
+                    <a href="#" class="flex items-center hover:text-red-600 transition-colors">
+                        <i class="fa fa-weibo mr-2"></i> @智游中国
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">智游中国</h3>
+                    <p class="text-gray-400 text-sm">为您提供智能、精准、个性化的旅游路线规划服务</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">快速链接</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="{{ url_for('index') }}" class="hover:text-white transition-colors">首页</a></li>
+                        <li><a href="{{ url_for('about') }}" class="hover:text-white transition-colors">关于我们</a></li>
+                        <li><a href="{{ url_for('help_page') }}" class="hover:text-white transition-colors">帮助中心</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">服务支持</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">常见问题</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">使用指南</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">联系我们</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">关注我们</h3>
+                    <div class="flex space-x-4 text-gray-400">
+                        <a href="#" class="hover:text-white text-xl transition-colors"><i class="fa fa-weixin"></i></a>
+                        <a href="#" class="hover:text-white text-xl transition-colors"><i class="fa fa-weibo"></i></a>
+                        <a href="#" class="hover:text-white text-xl transition-colors"><i class="fa fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-500 text-sm">
+                <p>© 2023 智游中国. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="fixed bottom-8 right-8 bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

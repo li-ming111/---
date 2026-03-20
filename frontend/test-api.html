@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button onclick="testAPI('/api/goals')">Test /api/goals</button>
+    <button onclick="testAPI('/api/career-plans/user/4')">Test /api/career-plans/user/4</button>
+    <button onclick="testAPI('/api/user-incentives')">Test /api/user-incentives</button>
+    <button onclick="testAPI('/api/user-points')">Test /api/user-points</button>
+    <div id="result"></div>
+
+    <script>
+        function testAPI(endpoint) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `Testing ${endpoint}...`;
+
+            fetch(`http://localhost:8082${endpoint}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer 123456'
+                }
+            })
+            .then(response => {
+                resultDiv.innerHTML += `<br>Status: ${response.status}`;
+                return response.json();
+            })
+            .then(data => {
+                resultDiv.innerHTML += `<br>Response: ${JSON.stringify(data)}`;
+            })
+            .catch(error => {
+                resultDiv.innerHTML += `<br>Error: ${error.message}`;
+            });
+        }
+    </script>
+</body>
+</html>
