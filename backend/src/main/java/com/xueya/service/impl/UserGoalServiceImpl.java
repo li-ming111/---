@@ -20,4 +20,14 @@ public class UserGoalServiceImpl extends ServiceImpl<UserGoalMapper, UserGoal> i
     public List<UserGoal> getUserGoalsByUserIdAndType(Long userId, String type) {
         return baseMapper.selectList(new QueryWrapper<UserGoal>().eq("user_id", userId).eq("type", type));
     }
+
+    @Override
+    public List<UserGoal> getGoalsByUserId(Long userId) {
+        return baseMapper.selectList(new QueryWrapper<UserGoal>().eq("user_id", userId));
+    }
+
+    @Override
+    public List<UserGoal> getGoalsByStatus(String status) {
+        return baseMapper.selectList(new QueryWrapper<UserGoal>().eq("status", status));
+    }
 }

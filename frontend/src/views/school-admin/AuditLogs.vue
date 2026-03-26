@@ -72,56 +72,7 @@ export default {
       currentPage: 1,
       pageSize: 10,
       totalLogs: 0,
-      logs: [
-        {
-          id: 1,
-          operatorName: '学校管理员',
-          operationType: 'login',
-          operationContent: '登录系统',
-          ipAddress: '192.168.1.100',
-          createdAt: '2026-03-20 10:00:00'
-        },
-        {
-          id: 2,
-          operatorName: '学校管理员',
-          operationType: 'add',
-          operationContent: '添加用户：testuser',
-          ipAddress: '192.168.1.100',
-          createdAt: '2026-03-20 10:05:00'
-        },
-        {
-          id: 3,
-          operatorName: '学校管理员',
-          operationType: 'edit',
-          operationContent: '编辑用户：testuser',
-          ipAddress: '192.168.1.100',
-          createdAt: '2026-03-20 10:10:00'
-        },
-        {
-          id: 4,
-          operatorName: '学校管理员',
-          operationType: 'delete',
-          operationContent: '删除用户：testuser',
-          ipAddress: '192.168.1.100',
-          createdAt: '2026-03-20 10:15:00'
-        },
-        {
-          id: 5,
-          operatorName: '学校管理员',
-          operationType: 'settings',
-          operationContent: '修改学校设置',
-          ipAddress: '192.168.1.100',
-          createdAt: '2026-03-20 10:20:00'
-        },
-        {
-          id: 6,
-          operatorName: '学校管理员',
-          operationType: 'logout',
-          operationContent: '退出系统',
-          ipAddress: '192.168.1.100',
-          createdAt: '2026-03-20 10:25:00'
-        }
-      ]
+      logs: []
     }
   },
   computed: {

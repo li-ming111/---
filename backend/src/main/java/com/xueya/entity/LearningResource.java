@@ -1,6 +1,7 @@
 package com.xueya.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -12,19 +13,33 @@ public class LearningResource implements Serializable {
     private Long id;
     private String title;
     private String description;
+    @TableField("file_url")
     private String fileUrl;
+    @TableField("file_name")
     private String fileName;
+    @TableField("file_type")
     private String fileType;
+    @TableField("file_size")
     private Long fileSize;
     private String category;
     private String tags;
+    @TableField("uploader_id")
     private Long uploaderId;
+    @TableField("uploader_name")
     private String uploaderName;
+    @TableField("school_id")
     private Long schoolId;
+    @TableField("student_stage")
+    private String studentStage;
+    @TableField("download_count")
     private Integer downloadCount;
+    @TableField("view_count")
     private Integer viewCount;
+    @TableField("create_time")
     private String createTime;
+    @TableField("update_time")
     private String updateTime;
+    private String status;
 
     // Getters and Setters
     public Long getId() {
@@ -123,6 +138,14 @@ public class LearningResource implements Serializable {
         this.schoolId = schoolId;
     }
 
+    public String getStudentStage() {
+        return studentStage;
+    }
+
+    public void setStudentStage(String studentStage) {
+        this.studentStage = studentStage;
+    }
+
     public Integer getDownloadCount() {
         return downloadCount;
     }
@@ -153,5 +176,13 @@ public class LearningResource implements Serializable {
 
     public void setUpdateTime(String updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

@@ -24,15 +24,15 @@
       <el-table :data="filteredResources" style="width: 100%">
         <el-table-column prop="id" label="ID" width="80"></el-table-column>
         <el-table-column prop="title" label="标题"></el-table-column>
-        <el-table-column prop="type" label="类型">
+        <el-table-column prop="category" label="类型">
           <template #default="scope">
-            <el-tag :type="getResourceType(scope.row.type)">{{ getResourceTypeName(scope.row.type) }}</el-tag>
+            <el-tag :type="getResourceType(scope.row.category)">{{ getResourceTypeName(scope.row.category) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="uploader" label="上传者"></el-table-column>
-        <el-table-column prop="schoolName" label="所属学校"></el-table-column>
-        <el-table-column prop="uploadTime" label="上传时间" width="180"></el-table-column>
-        <el-table-column prop="size" label="大小" width="100"></el-table-column>
+        <el-table-column prop="uploaderName" label="上传者"></el-table-column>
+        <el-table-column prop="schoolId" label="所属学校"></el-table-column>
+        <el-table-column prop="createTime" label="上传时间" width="180"></el-table-column>
+        <el-table-column prop="fileSize" label="大小" width="100"></el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="scope">
             <el-button size="small" @click="viewResource(scope.row.id)">查看</el-button>
@@ -110,59 +110,17 @@ export default {
         description: [{ required: true, message: '请输入资源描述', trigger: 'blur' }],
         uploader: [{ required: true, message: '请输入上传者', trigger: 'blur' }]
       },
-      resources: [
-        {
-          id: 1,
-          title: '高等数学学习指南',
-          type: 'document',
-          description: '高等数学课程学习资料',
-          uploader: '张老师',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          uploadTime: '2026-03-20 10:00:00',
-          size: '1.2 MB'
-        },
-        {
-          id: 2,
-          title: '大学物理实验视频',
-          type: 'video',
-          description: '大学物理实验教学视频',
-          uploader: '李老师',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          uploadTime: '2026-03-19 15:30:00',
-          size: '50.5 MB'
-        },
-        {
-          id: 3,
-          title: '英语听力练习音频',
-          type: 'audio',
-          description: '英语听力练习材料',
-          uploader: '王老师',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          uploadTime: '2026-03-18 09:00:00',
-          size: '15.8 MB'
-        },
-        {
-          id: 4,
-          title: '校园地图',
-          type: 'image',
-          description: '校园平面图',
-          uploader: '赵老师',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          uploadTime: '2026-03-17 14:00:00',
-          size: '2.3 MB'
-        }
-      ]
+      resources: []
     }
+  },
+  mounted() {
+    this.getResources()
   },
   computed: {
     filteredResources() {
       let result = this.resources
       if (this.resourceType) {
-        result = result.filter(resource => resource.type === this.resourceType)
+        result = result.filter(resource => resource.category === this.resourceType)
       }
       if (this.searchQuery) {
         result = result.filter(resource => 
@@ -207,30 +165,70 @@ export default {
     saveResource() {
       this.$refs.resourceForm.validate((valid) => {
         if (valid) {
+          const token = localStorage.getItem('token')
+          const user = localStorage.getItem('user')
+          const school = localStorage.getItem('school')
+          
+          if (!user || !school) {
+            this.$message.error('未找到用户或学校信息')
+            return
+          }
+          
+          const userInfo = JSON.parse(user)
+          const schoolInfo = JSON.parse(school)
+          
           if (this.editingResource) {
             // 编辑资源
-            const index = this.resources.findIndex(r => r.id === this.editingResource.id)
-            if (index !== -1) {
-              this.resources[index] = {
-                ...this.resources[index],
-                ...this.resourceForm
+            const formData = new FormData()
+            formData.append('id', this.editingResource.id)
+            formData.append('title', this.resourceForm.title)
+            formData.append('description', this.resourceForm.description)
+            formData.append('category', this.resourceForm.type)
+            formData.append('tags', '')
+            formData.append('uploaderId', userInfo.id)
+            formData.append('uploaderName', userInfo.name || userInfo.username)
+            formData.append('schoolId', schoolInfo.id)
+            formData.append('file', null) // 由于没有文件上传，添加一个空文件
+            
+            this.$axios.put('/api/resources/update', formData, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
               }
+            }).then(response => {
               this.$message.success('资源编辑成功')
-            }
+              this.getResources()
+              this.dialogVisible = false
+            }).catch(error => {
+              console.error('编辑资源失败:', error)
+              this.$message.error('编辑资源失败')
+            })
           } else {
             // 添加资源
-            const newResource = {
-              id: this.resources.length + 1,
-              ...this.resourceForm,
-              schoolCode: 'school001',
-              schoolName: '清华大学',
-              uploadTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-              size: `${(Math.random() * 10 + 1).toFixed(1)} MB`
-            }
-            this.resources.push(newResource)
-            this.$message.success('资源添加成功')
+            const formData = new FormData()
+            formData.append('title', this.resourceForm.title)
+            formData.append('description', this.resourceForm.description)
+            formData.append('category', this.resourceForm.type)
+            formData.append('tags', '')
+            formData.append('uploaderId', userInfo.id)
+            formData.append('uploaderName', userInfo.name || userInfo.username)
+            formData.append('schoolId', schoolInfo.id)
+            formData.append('file', null) // 由于没有文件上传，添加一个空文件
+            
+            this.$axios.post('/api/resources/upload', formData, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
+              }
+            }).then(response => {
+              this.$message.success('资源添加成功')
+              this.getResources()
+              this.dialogVisible = false
+            }).catch(error => {
+              console.error('添加资源失败:', error)
+              this.$message.error('添加资源失败')
+            })
           }
-          this.dialogVisible = false
         }
       })
     },
@@ -244,11 +242,18 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const index = this.resources.findIndex(r => r.id === id)
-        if (index !== -1) {
-          this.resources.splice(index, 1)
+        const token = localStorage.getItem('token')
+        this.$axios.delete(`/api/resources/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
           this.$message.success('资源删除成功')
-        }
+          this.getResources()
+        }).catch(error => {
+          console.error('删除资源失败:', error)
+          this.$message.error('删除资源失败')
+        })
       }).catch(() => {
         // 取消删除
       })
@@ -259,6 +264,41 @@ export default {
     },
     handleCurrentChange(current) {
       this.currentPage = current
+    },
+    getResources() {
+      const token = localStorage.getItem('token')
+      const school = localStorage.getItem('school')
+      if (!school) {
+        this.$message.error('未找到学校信息')
+        return
+      }
+      try {
+        const schoolData = JSON.parse(school)
+        if (!schoolData || !schoolData.id) {
+          this.$message.error('学校信息格式错误')
+          return
+        }
+        const schoolId = schoolData.id
+        console.log('School ID:', schoolId)
+        
+        const apiUrl = `/resources/school/${schoolId}`
+        
+        this.$axios.get(apiUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
+          this.resources = response.data || []
+        }).catch(error => {
+          console.error('获取资源列表失败:', error)
+          this.$message.error('获取资源列表失败')
+          this.resources = []
+        })
+      } catch (error) {
+        console.error('解析学校信息失败:', error)
+        this.$message.error('解析学校信息失败')
+        this.resources = []
+      }
     }
   }
 }

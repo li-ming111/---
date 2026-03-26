@@ -119,7 +119,7 @@ export default {
         startDate = this.formatDate(start)
       }
       
-      this.$axios.get(`/learning-stats/range/${userId}?startDate=${startDate}&endDate=${endDate}`, {
+      this.$axios.get(`/api/learning-stats/range/${userId}?startDate=${startDate}&endDate=${endDate}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

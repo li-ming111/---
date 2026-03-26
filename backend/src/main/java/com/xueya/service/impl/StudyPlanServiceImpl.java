@@ -36,6 +36,16 @@ public class StudyPlanServiceImpl extends ServiceImpl<StudyPlanMapper, StudyPlan
 
     @Override
     public boolean createPlan(StudyPlan studyPlan) {
+        // 检查是否已存在相同标题的学习计划
+        QueryWrapper<StudyPlan> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", studyPlan.getUserId());
+        queryWrapper.eq("title", studyPlan.getTitle());
+        List<StudyPlan> existingPlans = baseMapper.selectList(queryWrapper);
+        if (!existingPlans.isEmpty()) {
+            // 已存在相同标题的学习计划，返回false
+            return false;
+        }
+        
         studyPlan.setCreateTime(LocalDateTime.now().toString());
         studyPlan.setUpdateTime(LocalDateTime.now().toString());
         studyPlan.setStatus("active");

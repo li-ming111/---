@@ -36,9 +36,21 @@ public class CareerPlanServiceImpl extends ServiceImpl<CareerPlanMapper, CareerP
 
     @Override
     public boolean createPlan(CareerPlan careerPlan) {
+        // 检查是否已存在相同职业目标的职业规划
+        QueryWrapper<CareerPlan> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", careerPlan.getUserId());
+        queryWrapper.eq("career_goal", careerPlan.getCareerGoal());
+        List<CareerPlan> existingPlans = baseMapper.selectList(queryWrapper);
+        if (!existingPlans.isEmpty()) {
+            // 已存在相同职业目标的职业规划，返回false
+            return false;
+        }
+        
         careerPlan.setCreateTime(LocalDateTime.now().toString());
         careerPlan.setUpdateTime(LocalDateTime.now().toString());
-        careerPlan.setStatus("active");
+        if (careerPlan.getStatus() == null || careerPlan.getStatus().isEmpty()) {
+            careerPlan.setStatus("未开始");
+        }
         return save(careerPlan);
     }
 

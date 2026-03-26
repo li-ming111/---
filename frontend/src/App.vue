@@ -315,7 +315,7 @@ export default {
         // 根据用户角色显示不同的名称
         if (userInfo.role === 'super_admin' || userInfo.role === '0') {
           this.userName = '超级管理员'
-        } else if (userInfo.role === 'school_admin' || userInfo.role === '1' || userInfo.role === 'school') {
+        } else if (userInfo.role === 'school_admin' || userInfo.role === 'school') {
           this.userName = '学校管理员'
         } else {
           this.userName = userInfo.name || userInfo.username

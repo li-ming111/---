@@ -1,7 +1,7 @@
 package com.xueya.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.xueya.assistant.entity.Discussion;
+import com.xueya.entity.Discussion;
 import java.util.List;
 
 public interface DiscussionService extends IService<Discussion> {

@@ -1,7 +1,7 @@
 package com.xueya.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.xueya.assistant.entity.LearningStats;
+import com.xueya.entity.LearningStats;
 import java.util.List;
 
 public interface LearningStatsService extends IService<LearningStats> {
@@ -11,4 +11,6 @@ public interface LearningStatsService extends IService<LearningStats> {
     boolean saveOrUpdateStats(LearningStats stats);
     List<LearningStats> getWeeklyStats(Long userId, String weekStartDate);
     List<LearningStats> getMonthlyStats(Long userId, String month);
+    LearningStats getCurrentStats(Long userId);
+    List<LearningStats> getStatsSummary(Long userId);
 }

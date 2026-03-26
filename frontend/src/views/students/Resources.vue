@@ -40,10 +40,10 @@
             <div class="resource-title">{{ scope.row.title }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="type" label="资源类型" width="120">
+        <el-table-column prop="category" label="资源类型" width="120">
           <template #default="scope">
-            <el-tag :type="getTypeTagType(scope.row.type)" size="small" class="type-tag">
-              {{ scope.row.type }}
+            <el-tag :type="getTypeTagType(scope.row.category)" size="small" class="type-tag">
+              {{ scope.row.category }}
             </el-tag>
           </template>
         </el-table-column>
@@ -52,9 +52,9 @@
             <div class="resource-description">{{ scope.row.description }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="url" label="资源链接" width="200">
+        <el-table-column prop="fileUrl" label="资源链接" width="200">
           <template #default="scope">
-            <a :href="scope.row.url" target="_blank" class="resource-link">
+            <a :href="scope.row.fileUrl" target="_blank" class="resource-link">
               <el-icon><Link /></el-icon>
               查看链接
             </a>
@@ -89,13 +89,13 @@
         <el-divider />
         <div class="detail-info">
           <p><strong>资源类型:</strong> 
-            <el-tag :type="getTypeTagType(currentResource.type)" size="small">
-              {{ currentResource.type }}
+            <el-tag :type="getTypeTagType(currentResource.category)" size="small">
+              {{ currentResource.category }}
             </el-tag>
           </p>
           <p><strong>资源链接:</strong> 
-            <a :href="currentResource.url" target="_blank" class="detail-link">
-              {{ currentResource.url }}
+            <a :href="currentResource.fileUrl" target="_blank" class="detail-link">
+              {{ currentResource.fileUrl }}
             </a>
           </p>
           <p><strong>创建时间:</strong> {{ currentResource.createTime }}</p>
@@ -181,7 +181,7 @@ export default {
       const user = localStorage.getItem('user')
       if (user) {
         const userInfo = JSON.parse(user)
-        return userInfo.role === 'admin' || userInfo.role === 'teacher'
+        return userInfo.role === 'admin'
       }
       return false
     }
@@ -199,19 +199,19 @@ export default {
     },
     getResources() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/resources/list', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }).then(response => {
-        this.resources = response.data
-      }).catch(error => {
-        console.error('获取资源列表失败:', error)
-      })
+      this.$axios.get('/api/resources/list', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
+          this.resources = response.data || []
+        }).catch(error => {
+          console.error('获取资源列表失败:', error)
+        })
     },
     getMajors() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/majors/list', {
+      this.$axios.get('/api/majors/list', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -223,7 +223,7 @@ export default {
     },
     searchResources() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/resources/search', {
+      this.$axios.get('/api/resources/search', {
         params: { keyword: this.searchForm.keyword },
         headers: {
           'Authorization': `Bearer ${token}`
@@ -254,6 +254,7 @@ export default {
           this.getResources()
         }).catch(error => {
           console.error('删除资源失败:', error)
+          this.$message.error('删除资源失败')
         })
       }).catch(() => {
         this.$message.info('已取消删除')
@@ -269,7 +270,7 @@ export default {
       formData.append('uploaderId', JSON.parse(localStorage.getItem('user')).id)
       formData.append('uploaderName', JSON.parse(localStorage.getItem('user')).name || JSON.parse(localStorage.getItem('user')).username)
       formData.append('schoolId', JSON.parse(localStorage.getItem('school')).id)
-      formData.append('file', null) // 由于没有文件上传，添加一个空文件
+      formData.append('studentStage', '大学') // 添加学生阶段参数
       
       this.$axios.post('/api/resources/upload', formData, {
         headers: {
@@ -277,11 +278,12 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then(response => {
-        this.$message.success('资源添加成功')
+        this.$message.success('资源上传成功')
         this.dialogVisible = false
         this.getResources()
       }).catch(error => {
-        console.error('添加资源失败:', error)
+        console.error('上传资源失败:', error)
+        this.$message.error('上传资源失败')
       })
     },
     getTypeTagType(type) {

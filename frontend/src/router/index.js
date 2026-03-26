@@ -20,6 +20,12 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/school-verify',
+    name: 'schoolVerify',
+    component: () => import('../views/SchoolVerify.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('../views/students/Profile.vue'),
@@ -243,10 +249,8 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth !== false) {
     // 检查本地存储中是否有token
     const token = localStorage.getItem('token')
-    console.log('检查认证状态:', { token: !!token, to: to.path })
     if (!token) {
       // 未登录，重定向到登录页面
-      console.log('未登录，重定向到登录页面')
       next('/login')
     } else {
       // 已登录，继续访问

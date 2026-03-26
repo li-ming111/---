@@ -1,7 +1,7 @@
 package com.xueya.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.xueya.assistant.entity.GroupTask;
+import com.xueya.entity.GroupTask;
 import java.util.List;
 
 public interface GroupTaskService extends IService<GroupTask> {

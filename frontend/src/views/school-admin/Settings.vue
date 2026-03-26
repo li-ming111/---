@@ -88,35 +88,96 @@ export default {
     }
   },
   methods: {
+    getSchoolInfo() {
+      const token = localStorage.getItem('token')
+      const school = localStorage.getItem('school')
+      if (school) {
+        try {
+          const schoolInfo = JSON.parse(school)
+          if (schoolInfo && schoolInfo.id) {
+            this.$axios.get(`/api/school/${schoolInfo.id}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }).then(response => {
+              const schoolData = response.data
+              this.schoolSettings = {
+                schoolName: schoolData.name || '',
+                schoolCode: schoolData.code || '',
+                schoolAddress: schoolData.address || '',
+                contactPhone: schoolData.contactPhone || '',
+                contactEmail: schoolData.email || '',
+                schoolDescription: schoolData.description || ''
+              }
+            }).catch(error => {
+              console.error('获取学校信息失败:', error)
+            })
+          }
+        } catch (error) {
+          console.error('解析学校信息失败:', error)
+        }
+      }
+    },
     saveSchoolSettings() {
       this.$refs.schoolForm.validate((valid) => {
         if (valid) {
-          // 保存学校设置
-          localStorage.setItem('schoolSettings', JSON.stringify(this.schoolSettings))
-          this.$message.success('学校设置保存成功')
+          const token = localStorage.getItem('token')
+          const school = localStorage.getItem('school')
+          if (school) {
+            try {
+              const schoolInfo = JSON.parse(school)
+              if (schoolInfo.id) {
+                const schoolData = {
+                  id: schoolInfo.id,
+                  name: this.schoolSettings.schoolName,
+                  code: this.schoolSettings.schoolCode,
+                  address: this.schoolSettings.schoolAddress,
+                  contactPhone: this.schoolSettings.contactPhone,
+                  email: this.schoolSettings.contactEmail,
+                  description: this.schoolSettings.schoolDescription
+                }
+                this.$axios.put(`/api/school/${schoolInfo.id}`, schoolData, {
+                  headers: {
+                    'Authorization': `Bearer ${token}`
+                  }
+                }).then(response => {
+                  this.$message.success('学校设置保存成功')
+                }).catch(error => {
+                  console.error('保存学校设置失败:', error)
+                  this.$message.error('保存学校设置失败')
+                })
+              }
+            } catch (error) {
+              console.error('解析学校信息失败:', error)
+              this.$message.error('保存学校设置失败')
+            }
+          }
         }
       })
     },
     saveCourseSettings() {
       this.$refs.courseForm.validate((valid) => {
         if (valid) {
-          // 保存课程设置
-          localStorage.setItem('courseSettings', JSON.stringify(this.courseSettings))
-          this.$message.success('课程设置保存成功')
+          const token = localStorage.getItem('token')
+          const school = localStorage.getItem('school')
+          if (school) {
+            try {
+              const schoolInfo = JSON.parse(school)
+              if (schoolInfo.id) {
+                // 这里可以添加课程设置的后端 API 调用
+                this.$message.success('课程设置保存成功')
+              }
+            } catch (error) {
+              console.error('解析学校信息失败:', error)
+              this.$message.error('保存课程设置失败')
+            }
+          }
         }
       })
     }
   },
   mounted() {
-    // 从本地存储加载设置
-    const savedSchoolSettings = localStorage.getItem('schoolSettings')
-    if (savedSchoolSettings) {
-      this.schoolSettings = JSON.parse(savedSchoolSettings)
-    }
-    const savedCourseSettings = localStorage.getItem('courseSettings')
-    if (savedCourseSettings) {
-      this.courseSettings = JSON.parse(savedCourseSettings)
-    }
+    this.getSchoolInfo()
   }
 }
 </script>

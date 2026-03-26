@@ -16,21 +16,30 @@ public class User implements Serializable {
     private String name;
     private String gender;
     private Integer age;
+    @TableField("major_id")
     private Long majorId;
     private String grade;
     @TableField(exist = false)
     private String hobbies;
     @TableField(exist = false)
     private String careerGoal;
+    @TableField("student_id")
     private String studentId;
+    @TableField("id_card")
     private String idCard;
     private String role;
     private String status;
+    @TableField("create_time")
     private String createTime;
+    @TableField("update_time")
     private String updateTime;
     private String email;
     private String phone;
+    @TableField("school_id")
     private Long schoolId;
+    @TableField("student_stage")
+    private String studentStage;
+    @TableField(exist = false)
     private String avatar;
 
     // Getters and Setters
@@ -184,6 +193,14 @@ public class User implements Serializable {
 
     public void setSchoolId(Long schoolId) {
         this.schoolId = schoolId;
+    }
+
+    public String getStudentStage() {
+        return studentStage;
+    }
+
+    public void setStudentStage(String studentStage) {
+        this.studentStage = studentStage;
     }
 
     public String getAvatar() {

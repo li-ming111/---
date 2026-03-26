@@ -1,7 +1,7 @@
 package com.xueya.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.xueya.assistant.entity.Community;
+import com.xueya.entity.Community;
 import java.util.List;
 
 public interface CommunityService extends IService<Community> {

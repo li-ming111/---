@@ -29,13 +29,8 @@
         </div>
         
         <el-form :model="loginForm" :rules="rules" ref="loginForm" class="login-form">
-          <el-form-item prop="schoolCode" class="form-item">
-            <el-select v-model="loginForm.schoolCode" placeholder="请选择学校" class="custom-select">
-              <el-option v-for="school in schools" :key="school.id" :label="school.name" :value="school.code"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item prop="username" class="form-item">
-            <el-input v-model="loginForm.username" placeholder="请输入学号" class="custom-input">
+          <el-form-item prop="idCard" class="form-item">
+            <el-input v-model="loginForm.idCard" placeholder="请输入身份证号或用户名" class="custom-input">
               <template #prefix>
                 <i class="el-icon-user"></i>
               </template>
@@ -88,8 +83,7 @@ export default {
   data() {
     return {
       loginForm: {
-        schoolCode: '',
-        username: '',
+        idCard: '',
         password: ''
         // captcha: '' // 验证码功能暂时注释掉
       },
@@ -100,29 +94,18 @@ export default {
       isLoading: false,
       // captchaCode: '', // 验证码功能暂时注释掉
       rules: {
-        schoolCode: [{ required: true, message: '请选择学校', trigger: 'blur' }],
-        username: [{ required: true, message: '请输入学号', trigger: 'blur' }],
+        idCard: [
+          { required: true, message: '请输入身份证号或用户名', trigger: 'blur' }
+        ],
         password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
         // captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }] // 验证码功能暂时注释掉
-      }
+        }
     }
   },
   mounted() {
-    this.getSchools()
     // this.refreshCaptcha() // 验证码功能暂时注释掉
   },
   methods: {
-    async getSchools() {
-      try {
-        const response = await axios.get('/auth/schools')
-        if (response.data.schools) {
-          this.schools = response.data.schools
-        }
-      } catch (error) {
-        console.error('获取学校列表失败:', error)
-        // 只使用真实 API 数据，不使用本地备用数据
-      }
-    },
     // refreshCaptcha() {
     //   // 生成随机验证码
     //   const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -137,36 +120,17 @@ export default {
         if (valid) {
           this.isLoading = true
           try {
-            console.log('登录请求数据:', {
-                schoolCode: this.loginForm.schoolCode,
-                username: this.loginForm.username,
-                password: this.loginForm.password
-                // captcha: this.loginForm.captcha // 验证码功能暂时注释掉
-              })
-              // 前端验证验证码暂时注释掉
-              /* if (this.loginForm.captcha.toUpperCase() !== this.captchaCode.toUpperCase()) {
-                this.$message.error('验证码错误');
-                this.refreshCaptcha();
-                this.isLoading = false;
-                return;
-              } */
-              console.log('登录请求URL:', '/auth/login');
-              console.log('登录请求数据类型:', typeof { schoolCode: this.loginForm.schoolCode, username: this.loginForm.username, password: this.loginForm.password });
-              console.log('登录请求数据JSON:', JSON.stringify({ schoolCode: this.loginForm.schoolCode, username: this.loginForm.username, password: this.loginForm.password }));
-              const response = await axios.post('/auth/login', {
-                schoolCode: this.loginForm.schoolCode,
-                username: this.loginForm.username,
+              const response = await axios.post('/api/auth/login', {
+                idCard: this.loginForm.idCard,
                 password: this.loginForm.password
               })
-            console.log('登录响应数据:', response.data)
             if (response.data.success) {
               const token = response.data.token
               localStorage.setItem('token', token)
               localStorage.setItem('user', JSON.stringify(response.data.user))
               localStorage.setItem('school', JSON.stringify(response.data.school))
               if (this.rememberMe) {
-                localStorage.setItem('username', this.loginForm.username)
-                localStorage.setItem('schoolCode', this.loginForm.schoolCode)
+                localStorage.setItem('idCard', this.loginForm.idCard)
               }
               axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
               this.$message.success('登录成功')

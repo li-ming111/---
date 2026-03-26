@@ -105,7 +105,7 @@ export default {
     },
     getCheckinStatus() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/checkin/has-checked-in-today', {
+      this.$axios.get('/api/checkin/has-checked-in-today', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -117,7 +117,7 @@ export default {
     },
     getCheckinRecords() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/checkin/records', {
+      this.$axios.get('/api/checkin/records', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -130,7 +130,7 @@ export default {
     },
     getCheckinCount() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/checkin/count', {
+      this.$axios.get('/api/checkin/count', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -142,7 +142,7 @@ export default {
     },
     doCheckin() {
       const token = localStorage.getItem('token')
-      this.$axios.post('/checkin/do-checkin', {}, {
+      this.$axios.post('/api/checkin/do-checkin', {}, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

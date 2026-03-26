@@ -13,10 +13,13 @@ public class UserGoal implements Serializable {
     private Long userId;
     private String title;
     private String description;
-    private String targetDate;
+    private String startDate;
+    private String endDate;
     private String priority;
     private String status;
+    private Double progress;
     private String createTime;
+    private String updateTime;
 
     // Getters and Setters
     public Long getId() {
@@ -51,12 +54,20 @@ public class UserGoal implements Serializable {
         this.description = description;
     }
 
-    public String getTargetDate() {
-        return targetDate;
+    public String getStartDate() {
+        return startDate;
     }
 
-    public void setTargetDate(String targetDate) {
-        this.targetDate = targetDate;
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
     }
 
     public String getPriority() {
@@ -75,11 +86,27 @@ public class UserGoal implements Serializable {
         this.status = status;
     }
 
+    public Double getProgress() {
+        return progress;
+    }
+
+    public void setProgress(Double progress) {
+        this.progress = progress;
+    }
+
     public String getCreateTime() {
         return createTime;
     }
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
     }
 }

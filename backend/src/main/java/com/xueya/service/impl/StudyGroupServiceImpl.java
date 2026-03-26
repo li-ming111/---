@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xueya.mapper.StudyGroupMapper;
 import com.xueya.service.StudyGroupService;
-import com.xueya.assistant.entity.StudyGroup;
+import com.xueya.entity.StudyGroup;
 import org.springframework.stereotype.Service;
 import java.util.List;
 

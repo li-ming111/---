@@ -1,7 +1,7 @@
 package com.xueya.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xueya.assistant.entity.StudyGroup;
+import com.xueya.entity.StudyGroup;
 
 public interface StudyGroupMapper extends BaseMapper<StudyGroup> {
 }

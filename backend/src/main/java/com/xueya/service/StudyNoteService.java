@@ -1,7 +1,7 @@
 package com.xueya.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.xueya.assistant.entity.StudyNote;
+import com.xueya.entity.StudyNote;
 import java.util.List;
 
 public interface StudyNoteService extends IService<StudyNote> {

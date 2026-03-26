@@ -19,16 +19,10 @@
         <el-table-column prop="code" label="学校代码"></el-table-column>
         <el-table-column prop="name" label="学校名称"></el-table-column>
         <el-table-column prop="address" label="地址"></el-table-column>
-        <el-table-column prop="contact" label="联系人"></el-table-column>
-        <el-table-column prop="phone" label="联系电话"></el-table-column>
-        <el-table-column prop="status" label="状态">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === 'active' ? 'success' : 'danger'">
-              {{ scope.row.status === 'active' ? '活跃' : '禁用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180"></el-table-column>
+        <el-table-column prop="contact" label="联系电话"></el-table-column>
+        <el-table-column prop="email" label="邮箱"></el-table-column>
+        <el-table-column prop="website" label="网站"></el-table-column>
+        <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="scope">
             <el-button size="small" @click="editSchool(scope.row)">编辑</el-button>
@@ -66,16 +60,16 @@
           <el-input v-model="schoolForm.address" placeholder="请输入学校地址"></el-input>
         </el-form-item>
         <el-form-item prop="contact">
-          <el-input v-model="schoolForm.contact" placeholder="请输入联系人"></el-input>
+          <el-input v-model="schoolForm.contact" placeholder="请输入联系电话"></el-input>
         </el-form-item>
-        <el-form-item prop="phone">
-          <el-input v-model="schoolForm.phone" placeholder="请输入联系电话"></el-input>
+        <el-form-item prop="email">
+          <el-input v-model="schoolForm.email" placeholder="请输入邮箱"></el-input>
         </el-form-item>
-        <el-form-item prop="status">
-          <el-select v-model="schoolForm.status" placeholder="请选择状态">
-            <el-option label="活跃" value="active"></el-option>
-            <el-option label="禁用" value="inactive"></el-option>
-          </el-select>
+        <el-form-item prop="website">
+          <el-input v-model="schoolForm.website" placeholder="请输入网站"></el-input>
+        </el-form-item>
+        <el-form-item prop="description">
+          <el-input type="textarea" v-model="schoolForm.description" placeholder="请输入学校描述"></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -96,38 +90,7 @@ export default {
       currentPage: 1,
       pageSize: 10,
       totalSchools: 0,
-      schools: [
-        {
-          id: 1,
-          code: 'school001',
-          name: '清华大学',
-          address: '北京市海淀区清华大学',
-          contact: '张老师',
-          phone: '010-12345678',
-          status: 'active',
-          createdAt: '2026-01-01 00:00:00'
-        },
-        {
-          id: 2,
-          code: 'school002',
-          name: '北京大学',
-          address: '北京市海淀区北京大学',
-          contact: '李老师',
-          phone: '010-87654321',
-          status: 'active',
-          createdAt: '2026-01-02 00:00:00'
-        },
-        {
-          id: 3,
-          code: 'school003',
-          name: '复旦大学',
-          address: '上海市杨浦区复旦大学',
-          contact: '王老师',
-          phone: '021-12345678',
-          status: 'active',
-          createdAt: '2026-01-03 00:00:00'
-        }
-      ],
+      schools: [],
       dialogVisible: false,
       isAddMode: true,
       dialogTitle: '添加学校',
@@ -136,16 +99,18 @@ export default {
         name: '',
         address: '',
         contact: '',
-        phone: '',
-        status: 'active'
+        email: '',
+        website: '',
+        description: ''
       },
       rules: {
         code: [{ required: true, message: '请输入学校代码', trigger: 'blur' }],
         name: [{ required: true, message: '请输入学校名称', trigger: 'blur' }],
         address: [{ required: true, message: '请输入学校地址', trigger: 'blur' }],
-        contact: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
-        phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
-        status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
+        contact: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
+        email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
+        website: [{ required: true, message: '请输入网站', trigger: 'blur' }],
+        description: [{ required: true, message: '请输入学校描述', trigger: 'blur' }]
       }
     }
   },
@@ -165,6 +130,20 @@ export default {
     }
   },
   methods: {
+    getSchools() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/api/school/list', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json; charset=utf-8'
+        },
+        responseType: 'json'
+      }).then(response => {
+        this.schools = response.data
+      }).catch(error => {
+        console.error('获取学校列表失败:', error)
+      })
+    },
     addSchool() {
       this.isAddMode = true
       this.dialogTitle = '添加学校'
@@ -173,8 +152,9 @@ export default {
         name: '',
         address: '',
         contact: '',
-        phone: '',
-        status: 'active'
+        email: '',
+        website: '',
+        description: ''
       }
       this.dialogVisible = true
     },
@@ -185,40 +165,59 @@ export default {
       this.dialogVisible = true
     },
     saveSchool() {
+      const token = localStorage.getItem('token')
       this.$refs.schoolForm.validate((valid) => {
         if (valid) {
           if (this.isAddMode) {
             // 添加新学校
-            const newSchool = {
-              id: this.schools.length + 1,
-              ...this.schoolForm,
-              createdAt: new Date().toISOString().slice(0, 19).replace('T', ' ')
-            }
-            this.schools.push(newSchool)
-            this.$message.success('学校添加成功')
+            this.$axios.post('/api/school/add', this.schoolForm, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }).then(response => {
+              this.$message.success('学校添加成功')
+              this.dialogVisible = false
+              this.getSchools()
+            }).catch(error => {
+              console.error('添加学校失败:', error)
+              this.$message.error('添加学校失败')
+            })
           } else {
             // 编辑现有学校
-            const index = this.schools.findIndex(s => s.id === this.schoolForm.id)
-            if (index !== -1) {
-              this.schools[index] = { ...this.schoolForm }
+            this.$axios.put(`/api/school/${this.schoolForm.id}`, this.schoolForm, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }).then(response => {
               this.$message.success('学校编辑成功')
-            }
+              this.dialogVisible = false
+              this.getSchools()
+            }).catch(error => {
+              console.error('编辑学校失败:', error)
+              this.$message.error('编辑学校失败')
+            })
           }
-          this.dialogVisible = false
         }
       })
     },
     deleteSchool(id) {
+      const token = localStorage.getItem('token')
       this.$confirm('确定要删除该学校吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const index = this.schools.findIndex(s => s.id === id)
-        if (index !== -1) {
-          this.schools.splice(index, 1)
+        this.$axios.delete(`/api/school/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
           this.$message.success('学校删除成功')
-        }
+          this.getSchools()
+        }).catch(error => {
+          console.error('删除学校失败:', error)
+          this.$message.error('删除学校失败')
+        })
       }).catch(() => {
         // 取消删除
       })
@@ -230,6 +229,9 @@ export default {
     handleCurrentChange(current) {
       this.currentPage = current
     }
+  },
+  mounted() {
+    this.getSchools()
   }
 }
 </script>

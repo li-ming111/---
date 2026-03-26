@@ -140,7 +140,7 @@ export default {
     },
     getIncentives() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/incentives', {
+      this.$axios.get('/api/incentives', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -152,7 +152,7 @@ export default {
     },
     getUserIncentives() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/user-incentives', {
+      this.$axios.get('/api/incentives/user-incentives', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -164,7 +164,7 @@ export default {
     },
     getUserPoints() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/user-points', {
+      this.$axios.get('/api/incentives/user-points', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -180,7 +180,7 @@ export default {
     },
     claimIncentive(incentive) {
       const token = localStorage.getItem('token')
-      this.$axios.post(`/incentives/${incentive.id}/claim`, {}, {
+      this.$axios.post(`/api/incentives/${incentive.id}/claim`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -202,7 +202,7 @@ export default {
         case '已领取': return 'primary'
         case '已过期': return 'warning'
         case '已用完': return 'info'
-        default: return ''
+        default: return 'info'
       }
     }
   }

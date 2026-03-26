@@ -12,7 +12,10 @@ if (token) {
 }
 
 // 设置axios基础配置
-axios.defaults.baseURL = '/api'
+axios.defaults.baseURL = 'http://localhost:8082'
+axios.defaults.headers.common['Content-Type'] = 'application/json; charset=utf-8'
+axios.defaults.headers.common['Accept'] = 'application/json; charset=utf-8'
+axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*'
 
 const app = createApp(App)
 app.config.globalProperties.$axios = axios

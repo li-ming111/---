@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xueya.mapper.StudyNoteMapper;
 import com.xueya.service.StudyNoteService;
-import com.xueya.assistant.entity.StudyNote;
+import com.xueya.entity.StudyNote;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -19,9 +19,15 @@ public class StudyNoteServiceImpl extends ServiceImpl<StudyNoteMapper, StudyNote
 
     @Override
     public List<StudyNote> getNotesByUserId(Long userId) {
+        System.out.println("获取用户笔记列表，用户ID: " + userId);
         QueryWrapper<StudyNote> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId);
-        return baseMapper.selectList(wrapper);
+        List<StudyNote> notes = baseMapper.selectList(wrapper);
+        System.out.println("获取到笔记数量: " + notes.size());
+        for (StudyNote note : notes) {
+            System.out.println("笔记ID: " + note.getId() + ", 标题: " + note.getTitle());
+        }
+        return notes;
     }
 
     @Override
@@ -38,6 +44,15 @@ public class StudyNoteServiceImpl extends ServiceImpl<StudyNoteMapper, StudyNote
 
     @Override
     public boolean createNote(StudyNote note) {
+        // 检查是否已存在相同标题的学习笔记
+        QueryWrapper<StudyNote> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", note.getUserId());
+        queryWrapper.eq("title", note.getTitle());
+        List<StudyNote> existingNotes = baseMapper.selectList(queryWrapper);
+        if (!existingNotes.isEmpty()) {
+            // 已存在相同标题的学习笔记，返回false
+            return false;
+        }
         return save(note);
     }
 

@@ -197,68 +197,38 @@ export default {
   },
   methods: {
     getExams() {
-      // 模拟数据
-      this.exams = [
-        {
-          id: 1,
-          examName: '高等数学期中考试',
-          examType: 'midterm',
-          description: '高等数学上册期中考试',
-          examDate: '2026-04-15 14:00:00',
-          location: '教学楼A301',
-          duration: 120,
-          status: 'pending'
-        },
-        {
-          id: 2,
-          examName: '大学英语四级考试',
-          examType: 'certification',
-          description: '全国大学英语四级考试',
-          examDate: '2026-06-15 09:00:00',
-          location: '教学楼B101',
-          duration: 135,
-          status: 'pending'
-        },
-        {
-          id: 3,
-          examName: '数据结构期末考试',
-          examType: 'final',
-          description: '数据结构课程期末考试',
-          examDate: '2026-07-05 10:00:00',
-          location: '教学楼A201',
-          duration: 120,
-          status: 'pending'
-        }
-      ]
+      // 调用后端API获取考试数据
+      const userId = localStorage.getItem('userId') || 8
+      this.$axios.get(`/api/exams/user/${userId}`)
+        .then(response => {
+          this.exams = response.data || []
+          this.updateCalendarEvents()
+        })
+        .catch(error => {
+          console.error('获取考试数据失败:', error)
+          this.$message.error('获取考试数据失败，请稍后重试')
+        })
     },
     updateCalendarEvents() {
-      // 模拟日历事件
-      this.calendarEvents = [
-        {
-          id: 1,
-          title: '高等数学期中考试',
-          time: '14:00-16:00',
-          location: '教学楼A301'
-        },
-        {
-          id: 2,
-          title: '大学英语四级考试',
-          time: '09:00-11:15',
-          location: '教学楼B101'
+      // 基于实际考试数据生成日历事件
+      this.calendarEvents = this.exams.map(exam => {
+        const date = new Date(exam.examDate)
+        return {
+          id: exam.id,
+          title: exam.examName,
+          time: date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+          location: exam.location
         }
-      ]
+      })
     },
     searchExams() {
       // 实现搜索功能
-      console.log('搜索考试:', this.searchKeyword)
     },
     onDateChange() {
       // 实现日期变更功能
-      console.log('选择日期:', this.selectedDate)
     },
     showUpcomingExams() {
       // 显示即将到来的考试
-      console.log('显示即将到来的考试')
     },
     viewExam(exam) {
       this.$message.info(`查看考试: ${exam.examName}`)

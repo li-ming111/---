@@ -164,7 +164,7 @@ export default {
     },
     getGoals() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/goals', {
+      this.$axios.get('/api/goals', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -180,7 +180,7 @@ export default {
     },
     updateGoalStatus(goalId, status) {
       const token = localStorage.getItem('token')
-      this.$axios.put(`/goals/${goalId}/status`, { status }, {
+      this.$axios.put(`/api/goals/${goalId}/status`, { status }, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -193,7 +193,7 @@ export default {
     },
     addGoal() {
       const token = localStorage.getItem('token')
-      this.$axios.post('/goals', this.newGoal, {
+      this.$axios.post('/api/goals', this.newGoal, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -210,7 +210,7 @@ export default {
         case '高': return 'danger'
         case '中': return 'warning'
         case '低': return 'success'
-        default: return ''
+        default: return 'info'
       }
     },
     getStatusType(status) {
@@ -218,7 +218,7 @@ export default {
         case '已完成': return 'success'
         case '进行中': return 'primary'
         case '未开始': return 'info'
-        default: return ''
+        default: return 'info'
       }
     }
   }

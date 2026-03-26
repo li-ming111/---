@@ -131,7 +131,6 @@ export default {
   methods: {
     initCharts() {
       // 模拟图表初始化
-      console.log('初始化图表...')
       // 实际项目中可以使用 ECharts 等图表库
       // 这里只做示例，不实际绘制图表
     }

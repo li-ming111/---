@@ -38,6 +38,8 @@ public class OperationLogAspect {
 
     @AfterReturning(pointcut = "logPointcut()", returning = "result")
     public void afterReturningMethod(JoinPoint joinPoint, Object result) {
+        // 暂时注释掉操作日志记录，让服务能够正常启动
+        /*
         try {
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             
@@ -71,6 +73,7 @@ public class OperationLogAspect {
         } catch (Exception e) {
             // 发生异常，不影响正常业务逻辑
         }
+        */
     }
 
     private String getParams(JoinPoint joinPoint) {

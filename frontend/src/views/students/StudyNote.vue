@@ -49,7 +49,7 @@
         <div class="note-content">
           <p class="note-preview">{{ note.content.substring(0, 100) }}...</p>
           <div class="note-meta">
-            <span class="note-category">{{ note.category }}</span>
+            <span class="note-category">{{ note.type }}</span>
             <span class="note-time">{{ note.createTime }}</span>
           </div>
         </div>
@@ -147,36 +147,19 @@ export default {
   },
   methods: {
     getNotes() {
-      // 模拟数据
-      this.notes = [
-        {
-          id: 1,
-          title: 'Java核心技术笔记',
-          content: 'Java是一种广泛使用的计算机编程语言，拥有"一次编写，到处运行"的特性...',
-          category: 'course',
-          tags: ['Java', '编程'],
-          createTime: '2026-03-19 10:00:00',
-          updateTime: '2026-03-19 10:00:00'
-        },
-        {
-          id: 2,
-          title: '数据库设计原理',
-          content: '数据库设计是指对于一个给定的应用环境，构造最优的数据库模式...',
-          category: 'course',
-          tags: ['数据库', '设计'],
-          createTime: '2026-03-18 15:30:00',
-          updateTime: '2026-03-18 15:30:00'
-        },
-        {
-          id: 3,
-          title: '《深入理解计算机系统》读书笔记',
-          content: '这本书从程序员的角度详细阐述了计算机系统的本质...',
-          category: 'book',
-          tags: ['计算机', '读书'],
-          createTime: '2026-03-17 09:15:00',
-          updateTime: '2026-03-17 09:15:00'
+      const token = localStorage.getItem('token')
+      const user = JSON.parse(localStorage.getItem('user'))
+      const userId = user.id
+      
+      this.$axios.get(`/api/study-notes/user/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      ]
+      }).then(response => {
+        this.notes = response.data
+      }).catch(error => {
+        console.error('获取笔记列表失败:', error)
+      })
     },
     searchNotes() {
       // 实现搜索功能

@@ -53,9 +53,10 @@
       
       <!-- 输入区域 -->
       <div class="ai-input-area" v-if="!isMinimized">
-        <input type="text" v-model="inputMessage" placeholder="输入问题" class="ai-input">
-        <button class="send-btn" @click="sendMessage">
-          <i class="el-icon-send"></i>
+        <input type="text" v-model="inputMessage" placeholder="输入问题" class="ai-input" :disabled="isLoading">
+        <button class="send-btn" @click="sendMessage" :disabled="isLoading">
+          <i v-if="!isLoading" class="el-icon-send"></i>
+          <i v-else class="el-icon-loading"></i>
         </button>
       </div>
     </div>
@@ -72,6 +73,7 @@ export default {
       isMinimized: false,
       inputMessage: '',
       messages: [],
+      isLoading: false,
       logo: logo
     }
   },
@@ -84,7 +86,7 @@ export default {
       this.isMinimized = !this.isMinimized
     },
     sendMessage() {
-      if (this.inputMessage.trim()) {
+      if (this.inputMessage.trim() && !this.isLoading) {
         // 添加用户消息
         this.messages.push({
           type: 'user',
@@ -94,16 +96,44 @@ export default {
         // 滚动到底部
         this.scrollToBottom()
         
-        // 模拟AI回复
-        setTimeout(() => {
+        // 显示加载状态
+        this.isLoading = true
+        
+        // 调用后端API获取AI回复
+        const token = localStorage.getItem('token')
+        this.$axios.post('/api/ai-assistant/ask', {
+          question: this.inputMessage
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
+          if (response.data.success) {
+            // 添加AI回复
+            this.messages.push({
+              type: 'bot',
+              content: response.data.response
+            })
+          } else {
+            // 添加错误消息
+            this.messages.push({
+              type: 'bot',
+              content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
+            })
+          }
+        }).catch(error => {
+          console.error('获取AI回复失败:', error)
+          // 添加错误消息
           this.messages.push({
             type: 'bot',
-            content: this.getAIResponse(this.inputMessage)
+            content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
           })
-          
+        }).finally(() => {
+          // 隐藏加载状态
+          this.isLoading = false
           // 滚动到底部
           this.scrollToBottom()
-        }, 500)
+        })
         
         // 清空输入框
         this.inputMessage = ''
@@ -119,16 +149,44 @@ export default {
       // 滚动到底部
       this.scrollToBottom()
       
-      // 模拟AI回复
-      setTimeout(() => {
+      // 显示加载状态
+      this.isLoading = true
+      
+      // 调用后端API获取AI回复
+      const token = localStorage.getItem('token')
+      this.$axios.post('/api/ai-assistant/ask', {
+        question: question
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        if (response.data.success) {
+          // 添加AI回复
+          this.messages.push({
+            type: 'bot',
+            content: response.data.response
+          })
+        } else {
+          // 添加错误消息
+          this.messages.push({
+            type: 'bot',
+            content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
+          })
+        }
+      }).catch(error => {
+        console.error('获取AI回复失败:', error)
+        // 添加错误消息
         this.messages.push({
           type: 'bot',
-          content: this.getAIResponse(question)
+          content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
         })
-        
+      }).finally(() => {
+        // 隐藏加载状态
+        this.isLoading = false
         // 滚动到底部
         this.scrollToBottom()
-      }, 500)
+      })
     },
     scrollToBottom() {
       this.$nextTick(() => {
@@ -137,22 +195,6 @@ export default {
           chatContent.scrollTop = chatContent.scrollHeight
         }
       })
-    },
-    getAIResponse(question) {
-      // 简单的回复逻辑
-      const responses = {
-        '你是谁': '我是学涯助手系统的AI助手，专门为学生提供系统使用指导和帮助，包括学习计划、目标管理、职业规划等功能的使用说明。',
-        '如何使用': '你可以通过我了解学涯助手系统的各项功能，包括学习计划制定、学习资源查找、目标管理、职业规划、激励系统和每日打卡等。如果有具体问题，可以随时向我咨询。',
-        '学习计划': '学习计划功能可以帮助你制定合理的学习目标和时间表，创建详细的学习任务，跟踪学习进度，提高学习效率。你可以在"学习计划"页面创建和管理你的学习计划。',
-        '学习资源': '学习资源功能提供了丰富的学习材料，包括课程资料、参考书籍、视频教程等。你可以在"学习资源"页面浏览和下载这些资源，支持按类别和关键词搜索。',
-        '目标管理': '目标管理功能可以帮助你设定短期和长期目标，监控目标完成情况，及时调整学习策略。你可以在"目标管理"页面创建和跟踪你的学习目标。',
-        '职业规划': '职业规划功能可以根据你的专业和兴趣，提供职业发展建议和相关资源。你可以在"职业规划"页面了解不同职业路径，获取职业指导。',
-        '激励系统': '激励系统通过积分和奖励机制，鼓励你积极参与学习和完成任务。你可以在"激励系统"页面查看你的积分和获得的奖励。',
-        '每日打卡': '每日打卡功能让你记录每天的学习情况，养成良好的学习习惯。你可以在"每日打卡"页面进行打卡，查看历史打卡记录。',
-        '个人中心': '个人中心页面展示你的个人信息，包括基本资料、学习统计、获得的奖励等。你可以在个人中心更新你的个人信息和查看学习数据。'
-      }
-      
-      return responses[question] || '抱歉，我还不能回答这个问题。你可以尝试询问关于学习计划、学习资源、目标管理、职业规划、激励系统或每日打卡的问题。'
     }
   }
 }

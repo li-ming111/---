@@ -14,19 +14,18 @@
       
       <!-- 职业规划列表 -->
       <el-table :data="careerPlans" style="width: 100%" class="career-table">
-        <el-table-column prop="title" label="规划名称" width="250">
+        <el-table-column prop="careerGoal" label="规划名称" width="250">
           <template #default="scope">
-            <div class="plan-title">{{ scope.row.title }}</div>
+            <div class="plan-title">{{ scope.row.careerGoal }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="规划描述">
+        <el-table-column prop="industry" label="行业" width="180" />
+        <el-table-column prop="position" label="目标职位" width="180" />
+        <el-table-column prop="skillRequirements" label="所需技能" width="250">
           <template #default="scope">
-            <div class="plan-description">{{ scope.row.description }}</div>
+            <div class="plan-description">{{ scope.row.skillRequirements }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="targetPosition" label="目标职位" width="180" />
-        <el-table-column prop="targetSalary" label="目标薪资" width="150" />
-        <el-table-column prop="timeframe" label="时间框架" width="150" />
         <el-table-column prop="status" label="状态" width="120">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)" class="status-tag">
@@ -63,18 +62,22 @@
       class="custom-dialog"
     >
       <div v-if="currentCareerPlan" class="career-detail">
-        <h3 class="detail-title">{{ currentCareerPlan.title }}</h3>
-        <p class="detail-description">{{ currentCareerPlan.description }}</p>
+        <h3 class="detail-title">{{ currentCareerPlan.careerGoal }}</h3>
+        <p class="detail-description">{{ currentCareerPlan.industry }}</p>
         <el-divider />
         <div class="detail-info">
-          <p><strong>目标职位:</strong> {{ currentCareerPlan.targetPosition }}</p>
-          <p><strong>目标薪资:</strong> {{ currentCareerPlan.targetSalary }}</p>
-          <p><strong>时间框架:</strong> {{ currentCareerPlan.timeframe }}</p>
+          <p><strong>目标职位:</strong> {{ currentCareerPlan.position }}</p>
           <p><strong>所需技能:</strong> 
-            <el-tag v-for="skill in currentCareerPlan.skills.split(',')" :key="skill" class="skill-tag">
+            <el-tag v-for="skill in currentCareerPlan.skillRequirements.split(',')" :key="skill" class="skill-tag">
               {{ skill.trim() }}
             </el-tag>
           </p>
+          <p><strong>教育要求:</strong> {{ currentCareerPlan.educationRequirements }}</p>
+          <p><strong>经验要求:</strong> {{ currentCareerPlan.experienceRequirements }}</p>
+          <p><strong>短期目标:</strong> {{ currentCareerPlan.shortTermGoals }}</p>
+          <p><strong>中期目标:</strong> {{ currentCareerPlan.mediumTermGoals }}</p>
+          <p><strong>长期目标:</strong> {{ currentCareerPlan.longTermGoals }}</p>
+          <p><strong>行动计划:</strong> {{ currentCareerPlan.actionPlan }}</p>
           <p><strong>状态:</strong> 
             <el-tag :type="getStatusType(currentCareerPlan.status)" class="status-tag">
               {{ currentCareerPlan.status }}
@@ -164,7 +167,7 @@ export default {
     getCareerPlans() {
       const token = localStorage.getItem('token')
       const userId = JSON.parse(localStorage.getItem('user')).id
-      this.$axios.get(`/career-plans/user/${userId}`, {
+      this.$axios.get(`/api/career-plans/user/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -183,7 +186,7 @@ export default {
       const plan = this.careerPlans.find(p => p.id === planId)
       if (plan) {
         plan.status = status
-        this.$axios.put('/career-plans/update', plan, {
+        this.$axios.put('/api/career-plans/update', plan, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -218,7 +221,7 @@ export default {
         status: '未开始'
       }
       
-      this.$axios.post('/career-plans/create', careerPlan, {
+      this.$axios.post('/api/career-plans/create', careerPlan, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -236,7 +239,8 @@ export default {
         case '进行中': return 'primary'
         case '未开始': return 'info'
         case '已暂停': return 'warning'
-        default: return ''
+        case 'active': return 'info'
+        default: return 'info'
       }
     }
   }

@@ -97,10 +97,10 @@
         </el-form-item>
         <el-form-item label="发送对象">
           <el-radio-group v-model="notificationForm.target">
-            <el-radio label="all">所有用户</el-radio>
-            <el-radio label="selected">选中用户</el-radio>
-            <el-radio label="role">按角色</el-radio>
-            <el-radio label="school">按学校</el-radio>
+            <el-radio value="all">所有用户</el-radio>
+            <el-radio value="selected">选中用户</el-radio>
+            <el-radio value="role">按角色</el-radio>
+            <el-radio value="school">按学校</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="notificationForm.target === 'role'" label="选择角色">
@@ -184,49 +184,9 @@ export default {
         title: [{ required: true, message: '请输入通知标题', trigger: 'blur' }],
         content: [{ required: true, message: '请输入通知内容', trigger: 'blur' }]
       },
-      users: [
-        {
-          id: 1,
-          username: 'admin',
-          name: '超级管理员',
-          role: 'super_admin',
-          schoolCode: '',
-          schoolName: '系统',
-          status: 'active'
-        },
-        {
-          id: 2,
-          username: 'school_admin',
-          name: '学校管理员',
-          role: 'school_admin',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          status: 'active'
-        },
-        {
-          id: 3,
-          username: 'teacher001',
-          name: '张老师',
-          role: 'teacher',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          status: 'active'
-        },
-        {
-          id: 4,
-          username: 'student001',
-          name: '李同学',
-          role: 'student',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          status: 'active'
-        }
-      ],
-      schools: [
-        { code: 'school001', name: '清华大学' },
-        { code: 'school002', name: '北京大学' },
-        { code: 'school003', name: '复旦大学' }
-      ]
+      users: [],
+      schools: [],
+      isLoading: false
     }
   },
   computed: {
@@ -269,43 +229,160 @@ export default {
         this.$message.error('请选择文件')
         return
       }
-      // 模拟导入操作
-      this.$message.success('用户导入成功')
-      this.selectedFile = null
+      
+      this.isLoading = true
+      const token = localStorage.getItem('token')
+      const formData = new FormData()
+      formData.append('file', this.selectedFile.raw)
+      
+      this.$axios.post('/api/admin/bulk/import-users', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(response => {
+        if (response.data.success) {
+          this.$message.success(response.data.message)
+          this.selectedFile = null
+          this.getUsers()
+        } else {
+          this.$message.error(response.data.message)
+        }
+      }).catch(error => {
+        console.error('导入用户失败:', error)
+        this.$message.error('导入用户失败')
+      }).finally(() => {
+        this.isLoading = false
+      })
     },
     downloadTemplate() {
-      // 模拟下载模板
-      this.$message.success('模板下载成功')
+      const token = localStorage.getItem('token')
+      this.$axios.get('/api/admin/bulk/download-template', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        if (response.data.success) {
+          this.$message.success(response.data.message)
+          // 实际项目中，这里应该下载模板文件
+          // window.location.href = response.data.templateUrl
+        } else {
+          this.$message.error(response.data.message)
+        }
+      }).catch(error => {
+        console.error('下载模板失败:', error)
+        this.$message.error('下载模板失败')
+      })
     },
     exportUsers() {
-      // 模拟导出所有用户
-      this.$message.success('所有用户导出成功')
+      const token = localStorage.getItem('token')
+      this.$axios.get('/api/admin/bulk/export-users', {
+        params: {
+          type: 'all'
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        if (response.data.success) {
+          this.$message.success(response.data.message)
+          // 实际项目中，这里应该下载导出文件
+          // window.location.href = response.data.exportUrl
+        } else {
+          this.$message.error(response.data.message)
+        }
+      }).catch(error => {
+        console.error('导出用户失败:', error)
+        this.$message.error('导出用户失败')
+      })
     },
     exportSelectedUsers() {
       if (this.selectedUsers.length === 0) {
         this.$message.error('请选择用户')
         return
       }
-      // 模拟导出选中用户
-      this.$message.success('选中用户导出成功')
+      
+      const userIds = this.selectedUsers.map(user => user.id)
+      const token = localStorage.getItem('token')
+      
+      this.$axios.get('/api/admin/bulk/export-users', {
+        params: {
+          type: 'selected',
+          userIds: userIds
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        if (response.data.success) {
+          this.$message.success(response.data.message)
+          // 实际项目中，这里应该下载导出文件
+          // window.location.href = response.data.exportUrl
+        } else {
+          this.$message.error(response.data.message)
+        }
+      }).catch(error => {
+        console.error('导出用户失败:', error)
+        this.$message.error('导出用户失败')
+      })
     },
     bulkUpdate() {
       if (this.selectedUsers.length === 0) {
         this.$message.error('请选择用户')
         return
       }
+      
       this.$refs.bulkForm.validate((valid) => {
         if (valid) {
-          // 模拟批量修改
-          this.$message.success('批量修改成功')
+          this.isLoading = true
+          const userIds = this.selectedUsers.map(user => user.id)
+          const token = localStorage.getItem('token')
+          
+          this.$axios.put('/api/admin/bulk/update-users', {
+            userIds: userIds,
+            updateData: this.bulkForm
+          }, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }).then(response => {
+            if (response.data.success) {
+              this.$message.success(response.data.message)
+              this.getUsers()
+            } else {
+              this.$message.error(response.data.message)
+            }
+          }).catch(error => {
+            console.error('批量修改失败:', error)
+            this.$message.error('批量修改失败')
+          }).finally(() => {
+            this.isLoading = false
+          })
         }
       })
     },
     sendNotification() {
       this.$refs.notificationForm.validate((valid) => {
         if (valid) {
-          // 模拟发送通知
-          this.$message.success('通知发送成功')
+          this.isLoading = true
+          const token = localStorage.getItem('token')
+          
+          this.$axios.post('/api/admin/bulk/send-notification', this.notificationForm, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }).then(response => {
+            if (response.data.success) {
+              this.$message.success(response.data.message)
+            } else {
+              this.$message.error(response.data.message)
+            }
+          }).catch(error => {
+            console.error('发送通知失败:', error)
+            this.$message.error('发送通知失败')
+          }).finally(() => {
+            this.isLoading = false
+          })
         }
       })
     },
@@ -317,6 +394,49 @@ export default {
     },
     clearSelection() {
       this.$refs.table?.clearSelection()
+    },
+    getUsers() {
+      this.isLoading = true
+      const token = localStorage.getItem('token')
+      
+      this.$axios.get('/api/admin/bulk/users', {
+        params: {
+          search: this.searchQuery
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.users = response.data
+      }).catch(error => {
+        console.error('获取用户列表失败:', error)
+        this.$message.error('获取用户列表失败')
+      }).finally(() => {
+        this.isLoading = false
+      })
+    },
+    getSchools() {
+      const token = localStorage.getItem('token')
+      
+      this.$axios.get('/api/admin/bulk/schools', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.schools = response.data
+      }).catch(error => {
+        console.error('获取学校列表失败:', error)
+        this.$message.error('获取学校列表失败')
+      })
+    }
+  },
+  mounted() {
+    this.getUsers()
+    this.getSchools()
+  },
+  watch: {
+    searchQuery() {
+      this.getUsers()
     }
   }
 }

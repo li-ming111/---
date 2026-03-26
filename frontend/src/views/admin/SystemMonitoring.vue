@@ -109,32 +109,9 @@ export default {
       memoryUsage: 68,
       diskUsage: 32,
       apiResponseTime: 150,
-      alerts: [
-        {
-          id: 1,
-          title: 'CPU使用率警告',
-          description: 'CPU使用率超过80%，当前使用率为85%',
-          type: 'warning',
-          time: '2026-03-20 10:00:00'
-        },
-        {
-          id: 2,
-          title: 'API响应超时',
-          description: '部分API响应时间超过2000ms',
-          type: 'error',
-          time: '2026-03-20 09:30:00'
-        }
-      ],
-      serverInfo: [
-        { key: '服务器名称', value: 'server-001' },
-        { key: 'IP地址', value: '192.168.1.100' },
-        { key: '操作系统', value: 'Linux Ubuntu 20.04 LTS' },
-        { key: 'CPU型号', value: 'Intel Core i7-10700' },
-        { key: '内存大小', value: '32GB' },
-        { key: '磁盘容量', value: '1TB SSD' },
-        { key: '系统启动时间', value: '2026-03-15 00:00:00' },
-        { key: '运行时间', value: '5天 10小时 30分钟' }
-      ]
+      alerts: [],
+      serverInfo: [],
+      isLoading: false
     }
   },
   methods: {
@@ -145,18 +122,59 @@ export default {
     },
     initCharts() {
       // 模拟图表初始化
-      console.log('初始化监控图表...')
       // 实际项目中可以使用 ECharts 等图表库
+    },
+    getSystemStatus() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/api/system/monitoring/status', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const status = response.data
+        this.cpuUsage = status.cpuUsage
+        this.memoryUsage = status.memoryUsage
+        this.diskUsage = status.diskUsage
+        this.apiResponseTime = status.apiResponseTime
+      }).catch(error => {
+        console.error('获取系统状态失败:', error)
+      })
+    },
+    getServerInfo() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/api/system/monitoring/server-info', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.serverInfo = response.data
+      }).catch(error => {
+        console.error('获取服务器信息失败:', error)
+      })
+    },
+    getAlerts() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/api/system/monitoring/alerts', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.alerts = response.data
+      }).catch(error => {
+        console.error('获取异常预警失败:', error)
+      })
     }
   },
   mounted() {
     this.initCharts()
-    // 模拟实时数据更新
+    // 初始化数据
+    this.getSystemStatus()
+    this.getServerInfo()
+    this.getAlerts()
+    
+    // 定时更新系统状态
     setInterval(() => {
-      this.cpuUsage = Math.floor(Math.random() * 30) + 30
-      this.memoryUsage = Math.floor(Math.random() * 20) + 60
-      this.diskUsage = Math.floor(Math.random() * 10) + 30
-      this.apiResponseTime = Math.floor(Math.random() * 100) + 100
+      this.getSystemStatus()
     }, 5000)
   }
 }

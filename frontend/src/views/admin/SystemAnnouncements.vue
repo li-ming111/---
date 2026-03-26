@@ -28,9 +28,9 @@
         </el-form-item>
         <el-form-item label="发布范围" prop="scope">
           <el-radio-group v-model="announcementForm.scope">
-            <el-radio label="all">所有用户</el-radio>
-            <el-radio label="role">按角色</el-radio>
-            <el-radio label="school">按学校</el-radio>
+            <el-radio value="all">所有用户</el-radio>
+            <el-radio value="role">按角色</el-radio>
+            <el-radio value="school">按学校</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="announcementForm.scope === 'role'" label="选择角色">

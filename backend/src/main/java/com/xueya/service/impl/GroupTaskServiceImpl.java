@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xueya.mapper.GroupTaskMapper;
 import com.xueya.service.GroupTaskService;
-import com.xueya.assistant.entity.GroupTask;
+import com.xueya.entity.GroupTask;
 import org.springframework.stereotype.Service;
 import java.util.List;
 

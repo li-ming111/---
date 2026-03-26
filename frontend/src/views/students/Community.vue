@@ -17,7 +17,7 @@
         <el-tag 
           v-for="category in categories" 
           :key="category.value"
-          :type="activeCategory === category.value ? 'primary' : undefined"
+          :type="activeCategory === category.value ? 'primary' : 'info'"
           @click="activeCategory = category.value"
           class="category-tag"
         >
@@ -171,9 +171,9 @@ export default {
     },
     getCommunities() {
       const token = localStorage.getItem('token')
-      let url = '/communities/all'
+      let url = '/api/communities/all'
       if (this.activeCategory !== 'all') {
-        url = `/communities/type/${this.activeCategory}`
+        url = `/api/communities/type/${this.activeCategory}`
       }
       this.$axios.get(url, {
         headers: {
@@ -201,7 +201,7 @@ export default {
         creatorId: user.id
       }
       
-      this.$axios.post('/communities/create', community, {
+      this.$axios.post('/api/communities/create', community, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

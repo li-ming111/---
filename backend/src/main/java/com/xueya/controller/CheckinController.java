@@ -1,7 +1,10 @@
 package com.xueya.controller;
 
 import com.xueya.entity.Checkin;
+import com.xueya.entity.User;
 import com.xueya.service.CheckinService;
+import com.xueya.service.UserService;
+import com.xueya.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,12 +19,17 @@ public class CheckinController {
     @Autowired
     private CheckinService checkinService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
     // 打卡
-    // @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     @PostMapping("/do-checkin")
-    public ResponseEntity<?> doCheckin() {
-        // 从当前登录用户获取userId
-        Long userId = getCurrentUserId();
+    public ResponseEntity<?> doCheckin(@RequestHeader("Authorization") String authorizationHeader) {
+        Long userId = getCurrentUserId(authorizationHeader);
         boolean success = checkinService.checkin(userId);
         if (success) {
             return ResponseEntity.ok("打卡成功");
@@ -31,38 +39,36 @@ public class CheckinController {
     }
 
     // 检查今天是否已打卡
-    // @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/has-checked-in-today")
-    public ResponseEntity<Boolean> hasCheckedInToday() {
-        // 从当前登录用户获取userId
-        Long userId = getCurrentUserId();
+    public ResponseEntity<Boolean> hasCheckedInToday(@RequestHeader("Authorization") String authorizationHeader) {
+        Long userId = getCurrentUserId(authorizationHeader);
         boolean hasCheckedIn = checkinService.hasCheckedInToday(userId);
         return ResponseEntity.ok(hasCheckedIn);
     }
 
     // 获取用户打卡记录
-    // @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/records")
-    public List<Checkin> getUserCheckinRecords() {
-        // 从当前登录用户获取userId
-        Long userId = getCurrentUserId();
+    public List<Checkin> getUserCheckinRecords(@RequestHeader("Authorization") String authorizationHeader) {
+        Long userId = getCurrentUserId(authorizationHeader);
         return checkinService.getUserCheckinRecords(userId);
     }
 
     // 获取用户打卡次数
-    // @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/count")
-    public ResponseEntity<Integer> getUserCheckinCount() {
-        // 从当前登录用户获取userId
-        Long userId = getCurrentUserId();
+    public ResponseEntity<Integer> getUserCheckinCount(@RequestHeader("Authorization") String authorizationHeader) {
+        Long userId = getCurrentUserId(authorizationHeader);
         Integer count = checkinService.getUserCheckinCount(userId);
         return ResponseEntity.ok(count);
     }
 
     // 获取当前登录用户ID的辅助方法
-    private Long getCurrentUserId() {
-        // 这里需要根据实际的用户认证机制实现
-        // 暂时返回一个默认值，实际项目中应该从SecurityContext获取
-        return 1L;
+    private Long getCurrentUserId(String authorizationHeader) {
+        String token = authorizationHeader.substring(7);
+        String username = jwtUtil.getUsernameFromToken(token);
+        User user = userService.getUserByUsername(username);
+        return user != null ? user.getId() : null;
     }
 }

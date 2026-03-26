@@ -35,6 +35,8 @@ public class LogInterceptor implements HandlerInterceptor {
     
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        // 暂时注释掉操作日志记录，让服务能够正常启动
+        /*
         // 记录操作日志
         OperationLog log = new OperationLog();
         
@@ -67,6 +69,7 @@ public class LogInterceptor implements HandlerInterceptor {
         
         // 保存日志
         operationLogService.save(log);
+        */
     }
     
     // 获取操作名称

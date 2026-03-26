@@ -204,7 +204,7 @@ export default {
       const user = JSON.parse(localStorage.getItem('user'))
       if (!user) return
       const userId = user.id
-      this.$axios.get(`/study-plans/user/${userId}`, {
+      this.$axios.get(`/api/study-plans/user/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -217,7 +217,7 @@ export default {
     viewPlan(plan) {
       this.currentPlan = plan
       const token = localStorage.getItem('token')
-      this.$axios.get(`/study-plans/detail/plan/${plan.id}`, {
+      this.$axios.get(`/api/study-plans/detail/plan/${plan.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -229,13 +229,12 @@ export default {
     },
     adjustPlan(planId) {
       const token = localStorage.getItem('token')
-      this.$axios.put(`/study-plans/progress/${planId}`, null, {
+      this.$axios.put(`/api/study-plans/progress/${planId}`, null, {
         params: { progress: 50 },
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        console.log('调整学习计划进度成功:', response.data)
         this.getStudyPlans()
       }).catch(error => {
         console.error('调整学习计划进度失败:', error)
@@ -278,6 +277,11 @@ export default {
         this.getStudyPlans()
       }).catch(error => {
         console.error('创建计划失败:', error)
+        if (error.response && error.response.status === 400) {
+          this.$message.error('创建失败：已存在相同标题的学习计划')
+        } else {
+          this.$message.error('创建计划失败，请稍后重试')
+        }
       })
     },
     getProgressColor(progress) {
@@ -291,7 +295,7 @@ export default {
         case '进行中': return 'primary'
         case '未开始': return 'info'
         case '已暂停': return 'warning'
-        default: return ''
+        default: return 'info'
       }
     }
   }

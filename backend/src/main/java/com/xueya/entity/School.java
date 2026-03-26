@@ -14,10 +14,11 @@ public class School implements Serializable {
     private String code;
     private String logo;
     private String address;
-    private String contactPhone;
+    private String contact;
     private String email;
     private String website;
     private String description;
+    private String status;
     private String createTime;
     private String updateTime;
 
@@ -62,12 +63,12 @@ public class School implements Serializable {
         this.address = address;
     }
 
-    public String getContactPhone() {
-        return contactPhone;
+    public String getContact() {
+        return contact;
     }
 
-    public void setContactPhone(String contactPhone) {
-        this.contactPhone = contactPhone;
+    public void setContact(String contact) {
+        this.contact = contact;
     }
 
     public String getEmail() {
@@ -92,6 +93,14 @@ public class School implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getCreateTime() {

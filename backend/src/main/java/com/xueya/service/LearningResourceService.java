@@ -10,6 +10,7 @@ public interface LearningResourceService extends IService<LearningResource> {
     List<LearningResource> getResourcesByCategory(String category);
     List<LearningResource> searchResources(String keyword);
     List<LearningResource> getRecommendedResources(Long userId);
+    List<LearningResource> getResourcesByStudentStage(Long userId);
     void incrementViewCount(Long resourceId);
     void incrementDownloadCount(Long resourceId);
 }

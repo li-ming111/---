@@ -28,8 +28,8 @@
         </el-form-item>
         <el-form-item label="发布范围" prop="scope">
           <el-radio-group v-model="announcementForm.scope">
-            <el-radio label="all">所有用户</el-radio>
-            <el-radio label="role">按角色</el-radio>
+            <el-radio value="all">所有用户</el-radio>
+            <el-radio value="role">按角色</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="announcementForm.scope === 'role'" label="选择角色">
@@ -135,30 +135,7 @@ export default {
       },
       statusFilter: '',
       searchQuery: '',
-      announcements: [
-        {
-          id: 1,
-          title: '新学期开学通知',
-          content: '2026年春季学期将于3月1日正式开始，请各位学生做好开学准备。',
-          priority: 'high',
-          scope: 'all',
-          publishTime: '2026-03-20 10:00:00',
-          expiryDate: '2026-03-10 23:59:59',
-          status: 'expired',
-          readCount: 250
-        },
-        {
-          id: 2,
-          title: '教师培训通知',
-          content: '学校将于3月25日举办教师培训活动，请各位教师准时参加。',
-          priority: 'medium',
-          scope: 'teacher',
-          publishTime: '2026-03-20 09:00:00',
-          expiryDate: '2026-03-25 23:59:59',
-          status: 'active',
-          readCount: 85
-        }
-      ]
+      announcements: []
     }
   },
   computed: {

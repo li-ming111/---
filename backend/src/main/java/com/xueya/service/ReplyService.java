@@ -1,7 +1,7 @@
 package com.xueya.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.xueya.assistant.entity.Reply;
+import com.xueya.entity.Reply;
 import java.util.List;
 
 public interface ReplyService extends IService<Reply> {

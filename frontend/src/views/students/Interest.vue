@@ -241,37 +241,13 @@ export default {
     },
     updateCalendarActivities() {
       // 模拟日历活动
-      this.calendarActivities = [
-        {
-          id: 1,
-          title: '编程技术分享会',
-          time: '14:00-16:00',
-          location: '科技楼A101',
-          group: '编程爱好者协会'
-        },
-        {
-          id: 2,
-          title: '摄影外拍活动',
-          time: '09:00-12:00',
-          location: '校园湖边',
-          group: '摄影社'
-        },
-        {
-          id: 3,
-          title: '篮球友谊赛',
-          time: '16:00-18:00',
-          location: '体育馆',
-          group: '篮球俱乐部'
-        }
-      ]
+      this.calendarActivities = []
     },
     searchInterests() {
       // 实现搜索功能
-      console.log('搜索兴趣:', this.searchKeyword)
     },
     onDateChange() {
       // 实现日期变更功能
-      console.log('选择日期:', this.selectedDate)
     },
     viewInterest(interest) {
       this.$message.info(`查看兴趣: ${interest.name}`)

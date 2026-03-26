@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xueya.mapper.DiscussionMapper;
 import com.xueya.service.DiscussionService;
-import com.xueya.assistant.entity.Discussion;
+import com.xueya.entity.Discussion;
 import org.springframework.stereotype.Service;
 import java.util.List;
 

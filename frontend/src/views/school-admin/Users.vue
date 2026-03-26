@@ -69,7 +69,6 @@
         </el-form-item>
         <el-form-item label="角色" prop="role">
           <el-select v-model="userForm.role" placeholder="请选择角色">
-            <el-option label="教师" value="teacher"></el-option>
             <el-option label="学生" value="student"></el-option>
           </el-select>
         </el-form-item>
@@ -114,15 +113,6 @@ export default {
         status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
       },
       users: [
-        {
-          id: 1,
-          username: 'teacher001',
-          name: '张老师',
-          role: 'teacher',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          status: 'active'
-        },
         {
           id: 2,
           username: 'student001',
