@@ -28,6 +28,16 @@ public class StudyPlanDetailServiceImpl extends ServiceImpl<StudyPlanDetailMappe
 
     @Override
     public boolean createDetail(StudyPlanDetail detail) {
+        // 检查是否已存在相同的学习计划详情
+        QueryWrapper<StudyPlanDetail> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("plan_id", detail.getPlanId());
+        queryWrapper.eq("task_name", detail.getTaskName());
+        List<StudyPlanDetail> existingDetails = baseMapper.selectList(queryWrapper);
+        if (!existingDetails.isEmpty()) {
+            // 已存在相同的学习计划详情，返回false
+            return false;
+        }
+        
         detail.setCreateTime(LocalDateTime.now().toString());
         detail.setUpdateTime(LocalDateTime.now().toString());
         detail.setStatus("active");

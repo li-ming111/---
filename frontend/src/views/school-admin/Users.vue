@@ -112,27 +112,11 @@ export default {
         role: [{ required: true, message: '请选择角色', trigger: 'blur' }],
         status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
       },
-      users: [
-        {
-          id: 2,
-          username: 'student001',
-          name: '李同学',
-          role: 'student',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          status: 'active'
-        },
-        {
-          id: 3,
-          username: 'student002',
-          name: '王同学',
-          role: 'student',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          status: 'inactive'
-        }
-      ]
+      users: []
     }
+  },
+  mounted() {
+    this.getUsers()
   },
   computed: {
     filteredUsers() {
@@ -189,28 +173,48 @@ export default {
     saveUser() {
       this.$refs.userForm.validate((valid) => {
         if (valid) {
+          const token = localStorage.getItem('token')
+          const school = localStorage.getItem('school')
+          if (!school) {
+            this.$message.error('未找到学校信息')
+            return
+          }
+          const schoolData = JSON.parse(school)
+          const userData = {
+            ...this.userForm,
+            schoolId: schoolData.id
+          }
+          
           if (this.editingUser) {
             // 编辑用户
-            const index = this.users.findIndex(u => u.id === this.editingUser.id)
-            if (index !== -1) {
-              this.users[index] = {
-                ...this.users[index],
-                ...this.userForm
+            userData.id = this.editingUser.id
+            this.$axios.put('/users/update', userData, {
+              headers: {
+                'Authorization': `Bearer ${token}`
               }
+            }).then(response => {
               this.$message.success('用户编辑成功')
-            }
+              this.getUsers()
+              this.dialogVisible = false
+            }).catch(error => {
+              console.error('编辑用户失败:', error)
+              this.$message.error('编辑用户失败')
+            })
           } else {
             // 添加用户
-            const newUser = {
-              id: this.users.length + 1,
-              ...this.userForm,
-              schoolCode: 'school001',
-              schoolName: '清华大学'
-            }
-            this.users.push(newUser)
-            this.$message.success('用户添加成功')
+            this.$axios.post('/auth/register', userData, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }).then(response => {
+              this.$message.success('用户添加成功')
+              this.getUsers()
+              this.dialogVisible = false
+            }).catch(error => {
+              console.error('添加用户失败:', error)
+              this.$message.error('添加用户失败')
+            })
           }
-          this.dialogVisible = false
         }
       })
     },
@@ -220,13 +224,40 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const index = this.users.findIndex(u => u.id === id)
-        if (index !== -1) {
-          this.users.splice(index, 1)
+        const token = localStorage.getItem('token')
+        this.$axios.delete(`/users/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
           this.$message.success('用户删除成功')
-        }
+          this.getUsers()
+        }).catch(error => {
+          console.error('删除用户失败:', error)
+          this.$message.error('删除用户失败')
+        })
       }).catch(() => {
         // 取消删除
+      })
+    },
+    getUsers() {
+      const token = localStorage.getItem('token')
+      const school = localStorage.getItem('school')
+      if (!school) {
+        this.$message.error('未找到学校信息')
+        return
+      }
+      const schoolData = JSON.parse(school)
+      this.$axios.get(`/users/school/${schoolData.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.users = response.data || []
+      }).catch(error => {
+        console.error('获取用户列表失败:', error)
+        this.$message.error('获取用户列表失败')
+        this.users = []
       })
     },
     handleSizeChange(size) {

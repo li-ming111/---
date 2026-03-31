@@ -167,12 +167,22 @@ export default {
     getCareerPlans() {
       const token = localStorage.getItem('token')
       const userId = JSON.parse(localStorage.getItem('user')).id
-      this.$axios.get(`/api/career-plans/user/${userId}`, {
+      this.$axios.get(`/career-plans/user/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.careerPlans = response.data
+        const data = response.data || []
+        // 去重处理：根据ID去重
+        const uniquePlans = []
+        const planIds = new Set()
+        data.forEach(plan => {
+          if (!planIds.has(plan.id)) {
+            planIds.add(plan.id)
+            uniquePlans.push(plan)
+          }
+        })
+        this.careerPlans = uniquePlans
       }).catch(error => {
         console.error('获取职业规划列表失败:', error)
       })
@@ -186,15 +196,15 @@ export default {
       const plan = this.careerPlans.find(p => p.id === planId)
       if (plan) {
         plan.status = status
-        this.$axios.put('/api/career-plans/update', plan, {
+        this.$axios.put('/career-plans/update', plan, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         }).then(response => {
-          this.$message.success('职业规划状态更新成功')
+          this.$message.success('职业规划更新成功')
           this.getCareerPlans()
         }).catch(error => {
-          console.error('更新职业规划状态失败:', error)
+          console.error('更新职业规划失败:', error)
         })
       }
     },
@@ -221,16 +231,16 @@ export default {
         status: '未开始'
       }
       
-      this.$axios.post('/api/career-plans/create', careerPlan, {
+      this.$axios.post('/career-plans/create', careerPlan, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.$message.success('职业规划添加成功')
+        this.$message.success('职业规划创建成功')
         this.dialogVisible = false
         this.getCareerPlans()
       }).catch(error => {
-        console.error('添加职业规划失败:', error)
+        console.error('创建职业规划失败:', error)
       })
     },
     getStatusType(status) {

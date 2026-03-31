@@ -166,6 +166,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/school-admin/roles',
+    name: 'schoolAdminRoles',
+    component: () => import('../views/school-admin/Roles.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/incentive',
     name: 'incentive',
     component: () => import('../views/students/Incentive.vue'),

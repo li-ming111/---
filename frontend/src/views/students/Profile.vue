@@ -207,7 +207,7 @@ export default {
       const token = localStorage.getItem('token')
       const user = JSON.parse(localStorage.getItem('user'))
       if (user && user.id) {
-        this.$axios.get(`/api/privacy/user/${user.id}`, {
+        this.$axios.get(`/privacy/user/${user.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -234,7 +234,7 @@ export default {
     },
     getUserProfile() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/users/profile', {
+      this.$axios.get('/users/profile', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -252,7 +252,7 @@ export default {
     },
     getMajors() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/majors/list', {
+      this.$axios.get('/majors/list', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -272,7 +272,7 @@ export default {
     },
     getStats() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/users/stats', {
+      this.$axios.get('/users/stats', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -323,7 +323,7 @@ export default {
       const formData = new FormData()
       formData.append('avatar', this.avatarFile)
       
-      this.$axios.post('/api/users/avatar', formData, {
+      this.$axios.post('/users/avatar', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -345,7 +345,7 @@ export default {
       })
     },
     updateUserProfile(token) {
-      this.$axios.put('/api/users/profile', this.userProfile, {
+      this.$axios.put('/users/profile', this.userProfile, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -383,7 +383,7 @@ export default {
           deviceList: '', // 后端需要的字段，使用默认值
           notificationSettings: '' // 后端需要的字段，使用默认值
         }
-        this.$axios.post('/api/privacy/update', setting, {
+        this.$axios.post('/privacy/update', setting, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

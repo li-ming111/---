@@ -75,6 +75,9 @@ export default {
       logs: []
     }
   },
+  mounted() {
+    this.getLogs()
+  },
   computed: {
     filteredLogs() {
       let result = this.logs
@@ -121,10 +124,56 @@ export default {
     },
     searchLogs() {
       this.currentPage = 1
+      this.getLogs()
     },
     exportLogs() {
-      // 模拟导出功能
-      this.$message.success('日志导出成功')
+      const token = localStorage.getItem('token')
+      this.$axios.get('/audit-logs/export', {
+        params: {
+          startDate: this.dateRange[0] ? this.dateRange[0].toISOString() : '',
+          endDate: this.dateRange[1] ? this.dateRange[1].toISOString() : '',
+          operationType: this.operationType,
+          operatorName: this.operatorName
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.$message.success('日志导出成功')
+      }).catch(error => {
+        console.error('导出日志失败:', error)
+        this.$message.error('导出日志失败')
+      })
+    },
+    getLogs() {
+      const token = localStorage.getItem('token')
+      const school = localStorage.getItem('school')
+      if (!school) {
+        this.$message.error('未找到学校信息')
+        return
+      }
+      const schoolData = JSON.parse(school)
+      this.$axios.get('/audit-logs', {
+        params: {
+          schoolId: schoolData.id,
+          startDate: this.dateRange[0] ? this.dateRange[0].toISOString() : '',
+          endDate: this.dateRange[1] ? this.dateRange[1].toISOString() : '',
+          operationType: this.operationType,
+          operatorName: this.operatorName,
+          page: this.currentPage,
+          pageSize: this.pageSize
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.logs = response.data || []
+        this.totalLogs = this.logs.length
+      }).catch(error => {
+        console.error('获取日志失败:', error)
+        this.$message.error('获取日志失败')
+        this.logs = []
+      })
     },
     handleSizeChange(size) {
       this.pageSize = size

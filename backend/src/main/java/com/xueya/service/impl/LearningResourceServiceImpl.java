@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class LearningResourceServiceImpl extends ServiceImpl<LearningResourceMapper, LearningResource> implements LearningResourceService {
@@ -104,5 +106,40 @@ public class LearningResourceServiceImpl extends ServiceImpl<LearningResourceMap
         
         queryWrapper.orderByDesc("create_time");
         return baseMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public Map<String, Long> getResourceCountByType() {
+        Map<String, Long> typeCounts = new HashMap<>();
+        
+        // 查询所有资源并按类型统计
+        List<LearningResource> resources = baseMapper.selectList(new QueryWrapper<>());
+        
+        for (LearningResource resource : resources) {
+            String type = resource.getFileType();
+            if (type != null) {
+                String typeName = getTypeName(type);
+                typeCounts.put(typeName, typeCounts.getOrDefault(typeName, 0L) + 1);
+            }
+        }
+        
+        return typeCounts;
+    }
+
+    private String getTypeName(String type) {
+        switch (type) {
+            case "document":
+                return "文档";
+            case "video":
+                return "视频";
+            case "audio":
+                return "音频";
+            case "image":
+                return "图片";
+            case "other":
+                return "其他";
+            default:
+                return "其他";
+        }
     }
 }

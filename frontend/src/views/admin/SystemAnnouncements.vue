@@ -144,35 +144,18 @@ export default {
       },
       statusFilter: '',
       searchQuery: '',
-      announcements: [
-        {
-          id: 1,
-          title: '系统升级通知',
-          content: '系统将于2026年3月25日进行升级维护，届时系统将暂时无法访问，请各位用户提前做好准备。',
-          priority: 'high',
-          scope: 'all',
-          publishTime: '2026-03-20 10:00:00',
-          expiryDate: '2026-03-25 23:59:59',
-          status: 'active',
-          readCount: 120
-        },
-        {
-          id: 2,
-          title: '新学期开学通知',
-          content: '2026年春季学期将于3月1日正式开始，请各位学生做好开学准备。',
-          priority: 'medium',
-          scope: 'student',
-          publishTime: '2026-02-20 09:00:00',
-          expiryDate: '2026-03-10 23:59:59',
-          status: 'expired',
-          readCount: 250
-        }
-      ],
+      announcements: [],
       schools: [
         { code: 'school001', name: '清华大学' },
         { code: 'school002', name: '北京大学' },
         { code: 'school003', name: '复旦大学' }
-      ]
+      ],
+      announcementStats: {
+        totalAnnouncements: 0,
+        activeAnnouncements: 0,
+        expiredAnnouncements: 0,
+        totalReads: 0
+      }
     }
   },
   computed: {
@@ -190,16 +173,16 @@ export default {
       return result
     },
     totalAnnouncements() {
-      return this.announcements.length
+      return this.announcementStats.totalAnnouncements
     },
     activeAnnouncements() {
-      return this.announcements.filter(a => a.status === 'active').length
+      return this.announcementStats.activeAnnouncements
     },
     expiredAnnouncements() {
-      return this.announcements.filter(a => a.status === 'expired').length
+      return this.announcementStats.expiredAnnouncements
     },
     totalReads() {
-      return this.announcements.reduce((sum, a) => sum + a.readCount, 0)
+      return this.announcementStats.totalReads
     }
   },
   methods: {
@@ -230,33 +213,48 @@ export default {
       }
     },
     publishAnnouncement() {
+      const token = localStorage.getItem('token')
       this.$refs.announcementForm.validate((valid) => {
         if (valid) {
-          const newAnnouncement = {
-            id: this.announcements.length + 1,
-            ...this.announcementForm,
-            publishTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            status: 'active',
-            readCount: 0
-          }
-          this.announcements.unshift(newAnnouncement)
-          this.$message.success('公告发布成功')
-          // 重置表单
-          this.announcementForm = {
-            title: '',
-            content: '',
-            priority: 'medium',
-            expiryDate: '',
-            scope: 'all',
-            targetRole: '',
-            targetSchool: ''
-          }
+          this.$axios.post('/announcements/publish', this.announcementForm, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }).then(response => {
+            this.getAnnouncements()
+            this.getAnnouncementStats()
+            this.$message.success('公告发布成功')
+            // 重置表单
+            this.announcementForm = {
+              title: '',
+              content: '',
+              priority: 'medium',
+              expiryDate: '',
+              scope: 'all',
+              targetRole: '',
+              targetSchool: ''
+            }
+          }).catch(error => {
+            console.error('发布公告失败:', error)
+            this.$message.error('发布公告失败')
+          })
         }
       })
     },
     viewAnnouncement(id) {
-      // 模拟查看公告
-      this.$message.info('查看公告功能开发中')
+      const token = localStorage.getItem('token')
+      this.$axios.get(`/announcements/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const announcement = response.data
+        // 可以在这里打开一个对话框显示公告详情
+        console.log('公告详情:', announcement)
+      }).catch(error => {
+        console.error('查看公告失败:', error)
+        this.$message.error('查看公告失败')
+      })
     },
     deleteAnnouncement(id) {
       this.$confirm('确定要删除该公告吗？', '提示', {
@@ -264,15 +262,55 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const index = this.announcements.findIndex(a => a.id === id)
-        if (index !== -1) {
-          this.announcements.splice(index, 1)
+        const token = localStorage.getItem('token')
+        this.$axios.delete(`/announcements/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
+          this.getAnnouncements()
+          this.getAnnouncementStats()
           this.$message.success('公告删除成功')
-        }
+        }).catch(error => {
+          console.error('删除公告失败:', error)
+          this.$message.error('删除公告失败')
+        })
       }).catch(() => {
         // 取消删除
       })
+    },
+    getAnnouncements() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/announcements/list', {
+        params: {
+          status: this.statusFilter,
+          search: this.searchQuery
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.announcements = response.data
+      }).catch(error => {
+        console.error('获取公告列表失败:', error)
+      })
+    },
+    getAnnouncementStats() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/announcements/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.announcementStats = response.data
+      }).catch(error => {
+        console.error('获取公告统计失败:', error)
+      })
     }
+  },
+  mounted() {
+    this.getAnnouncements()
+    this.getAnnouncementStats()
   }
 }
 </script>

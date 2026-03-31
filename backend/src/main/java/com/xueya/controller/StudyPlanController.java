@@ -182,4 +182,16 @@ public class StudyPlanController {
     public List<StudyPlanDetail> getDetailsByStatus(@PathVariable String status) {
         return studyPlanDetailService.getDetailsByStatus(status);
     }
+
+    // AI智能推荐学习计划
+    @PreAuthorize("hasRole('STUDENT')")
+    @PostMapping("/ai-recommend")
+    public ResponseEntity<?> generateAIRecommendedPlan(@RequestParam Long userId, @RequestParam String educationType, @RequestParam String major, @RequestParam Integer years) {
+        StudyPlan plan = studyPlanService.generateAIRecommendedPlan(userId, educationType, major, years);
+        if (plan != null) {
+            return ResponseEntity.ok(plan);
+        } else {
+            return ResponseEntity.badRequest().body("AI推荐学习计划生成失败");
+        }
+    }
 }

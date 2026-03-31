@@ -14,7 +14,14 @@ public class StudyNoteServiceImpl extends ServiceImpl<StudyNoteMapper, StudyNote
     public List<StudyNote> getNotesByGroupId(Long groupId) {
         QueryWrapper<StudyNote> wrapper = new QueryWrapper<>();
         wrapper.eq("group_id", groupId);
-        return baseMapper.selectList(wrapper);
+        List<StudyNote> notes = baseMapper.selectList(wrapper);
+        
+        // 去重处理：使用Map以id为key确保唯一性
+        java.util.Map<Long, StudyNote> uniqueNotesMap = new java.util.HashMap<>();
+        for (StudyNote note : notes) {
+            uniqueNotesMap.put(note.getId(), note);
+        }
+        return new java.util.ArrayList<>(uniqueNotesMap.values());
     }
 
     @Override
@@ -23,18 +30,34 @@ public class StudyNoteServiceImpl extends ServiceImpl<StudyNoteMapper, StudyNote
         QueryWrapper<StudyNote> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId);
         List<StudyNote> notes = baseMapper.selectList(wrapper);
-        System.out.println("获取到笔记数量: " + notes.size());
+        
+        // 去重处理：使用Map以id为key确保唯一性
+        java.util.Map<Long, StudyNote> uniqueNotesMap = new java.util.HashMap<>();
         for (StudyNote note : notes) {
+            uniqueNotesMap.put(note.getId(), note);
+        }
+        List<StudyNote> uniqueNotes = new java.util.ArrayList<>(uniqueNotesMap.values());
+        
+        System.out.println("去重前笔记数量: " + notes.size());
+        System.out.println("去重后笔记数量: " + uniqueNotes.size());
+        for (StudyNote note : uniqueNotes) {
             System.out.println("笔记ID: " + note.getId() + ", 标题: " + note.getTitle());
         }
-        return notes;
+        return uniqueNotes;
     }
 
     @Override
     public List<StudyNote> getNotesByType(String type) {
         QueryWrapper<StudyNote> wrapper = new QueryWrapper<>();
         wrapper.eq("type", type);
-        return baseMapper.selectList(wrapper);
+        List<StudyNote> notes = baseMapper.selectList(wrapper);
+        
+        // 去重处理：使用Map以id为key确保唯一性
+        java.util.Map<Long, StudyNote> uniqueNotesMap = new java.util.HashMap<>();
+        for (StudyNote note : notes) {
+            uniqueNotesMap.put(note.getId(), note);
+        }
+        return new java.util.ArrayList<>(uniqueNotesMap.values());
     }
 
     @Override

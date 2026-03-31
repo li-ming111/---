@@ -132,7 +132,7 @@ export default {
   methods: {
     getSchools() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/school/list', {
+      this.$axios.get('/school/list', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json; charset=utf-8'
@@ -170,7 +170,7 @@ export default {
         if (valid) {
           if (this.isAddMode) {
             // 添加新学校
-            this.$axios.post('/api/school/add', this.schoolForm, {
+            this.$axios.post('/school/add', this.schoolForm, {
               headers: {
                 'Authorization': `Bearer ${token}`
               }
@@ -184,7 +184,7 @@ export default {
             })
           } else {
             // 编辑现有学校
-            this.$axios.put(`/api/school/${this.schoolForm.id}`, this.schoolForm, {
+            this.$axios.put(`/school/${this.schoolForm.id}`, this.schoolForm, {
               headers: {
                 'Authorization': `Bearer ${token}`
               }
@@ -207,7 +207,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$axios.delete(`/api/school/${id}`, {
+        this.$axios.delete(`/school/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

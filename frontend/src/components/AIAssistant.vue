@@ -63,140 +63,138 @@
   </div>
 </template>
 
-<script>
-import logo from '@/assets/tubiao.png'
+<script setup>
+import { ref, nextTick } from 'vue'
+import axios from 'axios'
+import logo from '../assets/tubiao.png'
 
-export default {
-  data() {
-    return {
-      isOpen: false,
-      isMinimized: false,
-      inputMessage: '',
-      messages: [],
-      isLoading: false,
-      logo: logo
-    }
-  },
-  methods: {
-    toggleOpen() {
-      this.isOpen = !this.isOpen
-      this.isMinimized = false
-    },
-    toggleMinimize() {
-      this.isMinimized = !this.isMinimized
-    },
-    sendMessage() {
-      if (this.inputMessage.trim() && !this.isLoading) {
-        // 添加用户消息
-        this.messages.push({
-          type: 'user',
-          content: this.inputMessage
-        })
-        
-        // 滚动到底部
-        this.scrollToBottom()
-        
-        // 显示加载状态
-        this.isLoading = true
-        
-        // 调用后端API获取AI回复
-        const token = localStorage.getItem('token')
-        this.$axios.post('/api/ai-assistant/ask', {
-          question: this.inputMessage
-        }, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }).then(response => {
-          if (response.data.success) {
-            // 添加AI回复
-            this.messages.push({
-              type: 'bot',
-              content: response.data.response
-            })
-          } else {
-            // 添加错误消息
-            this.messages.push({
-              type: 'bot',
-              content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
-            })
-          }
-        }).catch(error => {
-          console.error('获取AI回复失败:', error)
-          // 添加错误消息
-          this.messages.push({
-            type: 'bot',
-            content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
-          })
-        }).finally(() => {
-          // 隐藏加载状态
-          this.isLoading = false
-          // 滚动到底部
-          this.scrollToBottom()
-        })
-        
-        // 清空输入框
-        this.inputMessage = ''
+const isOpen = ref(false)
+const isMinimized = ref(false)
+const inputMessage = ref('')
+const messages = ref([])
+const isLoading = ref(false)
+
+const toggleOpen = () => {
+  isOpen.value = !isOpen.value
+  isMinimized.value = false
+}
+
+const toggleMinimize = () => {
+  isMinimized.value = !isMinimized.value
+}
+
+const sendMessage = () => {
+  if (inputMessage.value.trim() && !isLoading.value) {
+    // 添加用户消息
+    messages.value.push({
+      type: 'user',
+      content: inputMessage.value
+    })
+    
+    // 滚动到底部
+    scrollToBottom()
+    
+    // 显示加载状态
+    isLoading.value = true
+    
+    // 调用后端API获取AI回复
+    const token = localStorage.getItem('token')
+    axios.post('/ai-assistant/ask', {
+      question: inputMessage.value
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-    },
-    askQuestion(question) {
-      // 添加用户消息
-      this.messages.push({
-        type: 'user',
-        content: question
-      })
-      
-      // 滚动到底部
-      this.scrollToBottom()
-      
-      // 显示加载状态
-      this.isLoading = true
-      
-      // 调用后端API获取AI回复
-      const token = localStorage.getItem('token')
-      this.$axios.post('/api/ai-assistant/ask', {
-        question: question
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }).then(response => {
-        if (response.data.success) {
-          // 添加AI回复
-          this.messages.push({
-            type: 'bot',
-            content: response.data.response
-          })
-        } else {
-          // 添加错误消息
-          this.messages.push({
-            type: 'bot',
-            content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
-          })
-        }
-      }).catch(error => {
-        console.error('获取AI回复失败:', error)
+    }).then(response => {
+      if (response.data.success) {
+        // 添加AI回复
+        messages.value.push({
+          type: 'bot',
+          content: response.data.response
+        })
+      } else {
         // 添加错误消息
-        this.messages.push({
+        messages.value.push({
           type: 'bot',
           content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
         })
-      }).finally(() => {
-        // 隐藏加载状态
-        this.isLoading = false
-        // 滚动到底部
-        this.scrollToBottom()
+      }
+    }).catch(error => {
+      console.error('获取AI回复失败:', error)
+      // 添加错误消息
+      messages.value.push({
+        type: 'bot',
+        content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
       })
-    },
-    scrollToBottom() {
-      this.$nextTick(() => {
-        const chatContent = document.querySelector('.ai-chat-content')
-        if (chatContent) {
-          chatContent.scrollTop = chatContent.scrollHeight
-        }
-      })
-    }
+    }).finally(() => {
+      // 隐藏加载状态
+      isLoading.value = false
+      // 滚动到底部
+      scrollToBottom()
+    })
+    
+    // 清空输入框
+    inputMessage.value = ''
   }
+}
+
+const askQuestion = (question) => {
+  // 添加用户消息
+  messages.value.push({
+    type: 'user',
+    content: question
+  })
+  
+  // 滚动到底部
+  scrollToBottom()
+  
+  // 显示加载状态
+  isLoading.value = true
+  
+  // 调用后端API获取AI回复
+    const token = localStorage.getItem('token')
+    axios.post('/ai-assistant/ask', {
+      question: question
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }).then(response => {
+      if (response.data.success) {
+        // 添加AI回复
+        messages.value.push({
+          type: 'bot',
+          content: response.data.response
+        })
+      } else {
+        // 添加错误消息
+        messages.value.push({
+          type: 'bot',
+          content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
+        })
+      }
+    }).catch(error => {
+      console.error('获取AI回复失败:', error)
+      // 添加错误消息
+      messages.value.push({
+        type: 'bot',
+        content: '抱歉，AI助手暂时无法回答你的问题，请稍后再试。'
+      })
+    }).finally(() => {
+      // 隐藏加载状态
+      isLoading.value = false
+      // 滚动到底部
+      scrollToBottom()
+    })
+}
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    const chatContent = document.querySelector('.ai-chat-content')
+    if (chatContent) {
+      chatContent.scrollTop = chatContent.scrollHeight
+    }
+  })
 }
 </script>
 

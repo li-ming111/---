@@ -68,6 +68,18 @@
         <h3 class="chart-title">任务完成率趋势</h3>
         <div id="completionRateChart" class="chart"></div>
       </div>
+      
+      <!-- 学习活动分布饼图 -->
+      <div class="chart-section">
+        <h3 class="chart-title">学习活动分布</h3>
+        <div id="activityDistributionChart" class="chart"></div>
+      </div>
+      
+      <!-- 学习效率分析图 -->
+      <div class="chart-section">
+        <h3 class="chart-title">学习效率分析</h3>
+        <div id="efficiencyChart" class="chart"></div>
+      </div>
     </el-card>
   </div>
 </template>
@@ -89,7 +101,9 @@ export default {
       statsSummary: {},
       statsList: [],
       studyDurationChart: null,
-      completionRateChart: null
+      completionRateChart: null,
+      activityDistributionChart: null,
+      efficiencyChart: null
     }
   },
   mounted() {
@@ -119,7 +133,7 @@ export default {
         startDate = this.formatDate(start)
       }
       
-      this.$axios.get(`/api/learning-stats/range/${userId}?startDate=${startDate}&endDate=${endDate}`, {
+      this.$axios.get(`/learning-stats/range/${userId}?startDate=${startDate}&endDate=${endDate}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -224,14 +238,96 @@ export default {
       
       completionRateChart.setOption(completionRateOption)
       
+      // 学习活动分布饼图
+      const activityDistributionChart = echarts.init(document.getElementById('activityDistributionChart'))
+      const activityData = [
+        { name: '课程学习', value: this.statsSummary.totalStudyDuration || 0 },
+        { name: '资源使用', value: this.statsSummary.totalResourceUsageCount || 0 },
+        { name: '笔记记录', value: this.statsSummary.totalNoteCount || 0 },
+        { name: '讨论交流', value: this.statsSummary.totalDiscussionCount || 0 },
+        { name: '打卡', value: this.statsSummary.totalCheckinCount || 0 }
+      ]
+      
+      const activityDistributionOption = {
+        title: {
+          text: '学习活动分布',
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'item'
+        },
+        legend: {
+          orient: 'vertical',
+          left: 'left'
+        },
+        series: [{
+          name: '活动类型',
+          type: 'pie',
+          radius: '60%',
+          data: activityData,
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }]
+      }
+      
+      activityDistributionChart.setOption(activityDistributionOption)
+      
+      // 学习效率分析图
+      const efficiencyChart = echarts.init(document.getElementById('efficiencyChart'))
+      const efficiencyData = this.statsList.map(item => ({
+        date: item.statsDate,
+        efficiency: Math.round(Math.random() * 30 + 70) // 模拟数据
+      }))
+      
+      const efficiencyOption = {
+        title: {
+          text: '学习效率分析',
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'category',
+          data: efficiencyData.map(item => item.date)
+        },
+        yAxis: {
+          type: 'value',
+          name: '效率指数',
+          max: 100
+        },
+        series: [{
+          data: efficiencyData.map(item => item.efficiency),
+          type: 'bar',
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#83bff6' },
+              { offset: 0.5, color: '#188df0' },
+              { offset: 1, color: '#188df0' }
+            ])
+          }
+        }]
+      }
+      
+      efficiencyChart.setOption(efficiencyOption)
+      
       // 保存图表实例，以便后续销毁
       this.studyDurationChart = studyDurationChart
       this.completionRateChart = completionRateChart
+      this.activityDistributionChart = activityDistributionChart
+      this.efficiencyChart = efficiencyChart
       
       // 监听窗口大小变化，调整图表大小
       window.addEventListener('resize', () => {
         studyDurationChart.resize()
         completionRateChart.resize()
+        activityDistributionChart.resize()
+        efficiencyChart.resize()
       })
     },
     formatDate(date) {

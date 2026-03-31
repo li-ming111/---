@@ -21,8 +21,16 @@ public class GoalsController {
     @PreAuthorize("hasRole('STUDENT')")
     @GetMapping
     public List<UserGoal> getGoals() {
-        // 从JWT token中获取用户ID
-        return userGoalService.list();
+        // 从SecurityContext中获取用户ID
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getDetails() instanceof java.util.Map) {
+            java.util.Map<?, ?> details = (java.util.Map<?, ?>) authentication.getDetails();
+            Long userId = (Long) details.get("userId");
+            if (userId != null) {
+                return userGoalService.getGoalsByUserId(userId);
+            }
+        }
+        return java.util.Collections.emptyList();
     }
 
     // 获取用户的目标列表

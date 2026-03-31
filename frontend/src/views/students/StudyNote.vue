@@ -151,12 +151,17 @@ export default {
       const user = JSON.parse(localStorage.getItem('user'))
       const userId = user.id
       
-      this.$axios.get(`/api/study-notes/user/${userId}`, {
+      this.$axios.get(`/study-notes/user/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.notes = response.data
+        // 去重处理：使用Map以id为key确保唯一性
+        const uniqueNotesMap = new Map()
+        response.data.forEach(note => {
+          uniqueNotesMap.set(note.id, note)
+        })
+        this.notes = Array.from(uniqueNotesMap.values())
       }).catch(error => {
         console.error('获取笔记列表失败:', error)
       })

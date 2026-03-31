@@ -153,52 +153,12 @@ export default {
       },
       reviewType: '',
       dateRange: [],
-      pendingContents: [
-        {
-          id: 1,
-          title: '高等数学学习指南',
-          type: 'document',
-          uploader: '张老师',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          uploadTime: '2026-03-20 10:00:00'
-        },
-        {
-          id: 2,
-          title: '大学物理实验视频',
-          type: 'video',
-          uploader: '李老师',
-          schoolCode: 'school001',
-          schoolName: '清华大学',
-          uploadTime: '2026-03-20 09:30:00'
-        }
-      ],
-      reviewHistory: [
-        {
-          id: 1,
-          title: '英语听力练习音频',
-          type: 'audio',
-          uploader: '王老师',
-          reviewer: '超级管理员',
-          status: 'approved',
-          reviewTime: '2026-03-19 16:00:00',
-          reason: '内容合规'
-        },
-        {
-          id: 2,
-          title: '校园地图',
-          type: 'image',
-          uploader: '赵老师',
-          reviewer: '超级管理员',
-          status: 'rejected',
-          reviewTime: '2026-03-19 15:30:00',
-          reason: '内容不符合要求'
-        }
-      ],
-      totalPending: 2,
-      totalApproved: 1,
-      totalRejected: 1,
-      approvalRate: 50
+      pendingContents: [],
+      reviewHistory: [],
+      totalPending: 0,
+      totalApproved: 0,
+      totalRejected: 0,
+      approvalRate: 0
     }
   },
   methods: {
@@ -223,67 +183,141 @@ export default {
       }
     },
     saveRules() {
+      const token = localStorage.getItem('token')
       this.$refs.rulesForm.validate((valid) => {
         if (valid) {
-          // 保存审核规则
-          localStorage.setItem('reviewRules', JSON.stringify(this.reviewRules))
-          this.$message.success('审核规则保存成功')
+          this.$axios.post('/content-review/rules', this.reviewRules, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }).then(response => {
+            this.$message.success('审核规则保存成功')
+          }).catch(error => {
+            console.error('保存审核规则失败:', error)
+            this.$message.error('保存审核规则失败')
+          })
         }
       })
     },
     viewContent(id) {
-      // 模拟查看内容
-      this.$message.info('查看内容功能开发中')
+      const token = localStorage.getItem('token')
+      this.$axios.get(`/content-review/content/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const content = response.data
+        // 可以在这里打开一个对话框显示内容详情
+        console.log('内容详情:', content)
+      }).catch(error => {
+        console.error('查看内容失败:', error)
+        this.$message.error('查看内容失败')
+      })
     },
     approveContent(id) {
-      const index = this.pendingContents.findIndex(c => c.id === id)
-      if (index !== -1) {
-        const content = this.pendingContents.splice(index, 1)[0]
-        this.reviewHistory.unshift({
-          ...content,
-          reviewer: '超级管理员',
-          status: 'approved',
-          reviewTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          reason: '内容合规'
-        })
-        this.totalPending--
-        this.totalApproved++
-        this.updateApprovalRate()
+      const token = localStorage.getItem('token')
+      this.$axios.post(`/content-review/approve/${id}`, {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.getPendingContents()
+        this.getReviewHistory()
+        this.getReviewStats()
         this.$message.success('内容审核通过')
-      }
+      }).catch(error => {
+        console.error('审核通过失败:', error)
+        this.$message.error('审核通过失败')
+      })
     },
     rejectContent(id) {
-      const index = this.pendingContents.findIndex(c => c.id === id)
-      if (index !== -1) {
-        const content = this.pendingContents.splice(index, 1)[0]
-        this.reviewHistory.unshift({
-          ...content,
-          reviewer: '超级管理员',
-          status: 'rejected',
-          reviewTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          reason: '内容不符合要求'
-        })
-        this.totalPending--
-        this.totalRejected++
-        this.updateApprovalRate()
+      const token = localStorage.getItem('token')
+      this.$axios.post(`/content-review/reject/${id}`, { reason: '内容不符合要求' }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.getPendingContents()
+        this.getReviewHistory()
+        this.getReviewStats()
         this.$message.success('内容审核拒绝')
-      }
+      }).catch(error => {
+        console.error('审核拒绝失败:', error)
+        this.$message.error('审核拒绝失败')
+      })
     },
     searchHistory() {
-      // 模拟搜索历史
-      this.$message.info('搜索功能开发中')
+      this.getReviewHistory()
     },
     updateApprovalRate() {
       const total = this.totalApproved + this.totalRejected
       this.approvalRate = total > 0 ? Math.round((this.totalApproved / total) * 100) : 0
+    },
+    getReviewRules() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/content-review/rules', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.reviewRules = response.data
+      }).catch(error => {
+        console.error('获取审核规则失败:', error)
+      })
+    },
+    getPendingContents() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/content-review/pending', {
+        params: { type: this.reviewType },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.pendingContents = response.data
+      }).catch(error => {
+        console.error('获取待审核内容失败:', error)
+      })
+    },
+    getReviewHistory() {
+      const token = localStorage.getItem('token')
+      const params = {}
+      if (this.dateRange && this.dateRange.length === 2) {
+        params.startDate = this.dateRange[0]
+        params.endDate = this.dateRange[1]
+      }
+      this.$axios.get('/content-review/history', {
+        params: params,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.reviewHistory = response.data
+      }).catch(error => {
+        console.error('获取审核历史失败:', error)
+      })
+    },
+    getReviewStats() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/content-review/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const stats = response.data
+        this.totalPending = stats.totalPending
+        this.totalApproved = stats.totalApproved
+        this.totalRejected = stats.totalRejected
+        this.approvalRate = stats.approvalRate
+      }).catch(error => {
+        console.error('获取审核统计失败:', error)
+      })
     }
   },
   mounted() {
-    // 从本地存储加载审核规则
-    const savedRules = localStorage.getItem('reviewRules')
-    if (savedRules) {
-      this.reviewRules = JSON.parse(savedRules)
-    }
+    this.getReviewRules()
+    this.getPendingContents()
+    this.getReviewHistory()
+    this.getReviewStats()
   }
 }
 </script>

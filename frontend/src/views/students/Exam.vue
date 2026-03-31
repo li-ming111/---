@@ -199,7 +199,7 @@ export default {
     getExams() {
       // 调用后端API获取考试数据
       const userId = localStorage.getItem('userId') || 8
-      this.$axios.get(`/api/exams/user/${userId}`)
+      this.$axios.get(`/exams/user/${userId}`)
         .then(response => {
           this.exams = response.data || []
           this.updateCalendarEvents()

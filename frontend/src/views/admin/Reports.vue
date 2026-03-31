@@ -82,50 +82,22 @@
 export default {
   data() {
     return {
-      totalUsers: 1234,
-      totalSchools: 23,
-      totalResources: 567,
-      totalLogins: 156,
-      userGrowthData: [
-        { month: '1月', users: 120 },
-        { month: '2月', users: 230 },
-        { month: '3月', users: 340 },
-        { month: '4月', users: 450 },
-        { month: '5月', users: 560 },
-        { month: '6月', users: 670 },
-        { month: '7月', users: 780 },
-        { month: '8月', users: 890 },
-        { month: '9月', users: 1000 },
-        { month: '10月', users: 1100 },
-        { month: '11月', users: 1200 },
-        { month: '12月', users: 1234 }
-      ],
-      userRoleData: [
-        { role: '超级管理员', count: 5 },
-        { role: '学校管理员', count: 25 },
-        { role: '教师', count: 300 },
-        { role: '学生', count: 904 }
-      ],
-      resourceTypeData: [
-        { type: '文档', count: 200 },
-        { type: '视频', count: 150 },
-        { type: '音频', count: 100 },
-        { type: '图片', count: 80 },
-        { type: '其他', count: 37 }
-      ],
-      accessData: [
-        { hour: '00:00', visits: 10 },
-        { hour: '03:00', visits: 5 },
-        { hour: '06:00', visits: 15 },
-        { hour: '09:00', visits: 45 },
-        { hour: '12:00', visits: 35 },
-        { hour: '15:00', visits: 50 },
-        { hour: '18:00', visits: 40 },
-        { hour: '21:00', visits: 25 }
-      ]
+      totalUsers: 0,
+      totalSchools: 0,
+      totalResources: 0,
+      totalLogins: 0,
+      userGrowthData: [],
+      userRoleData: [],
+      resourceTypeData: [],
+      accessData: []
     }
   },
   mounted() {
+    this.getSystemStats()
+    this.getUserGrowth()
+    this.getUserRoleDistribution()
+    this.getResourceTypeDistribution()
+    this.getAccessStats()
     this.initCharts()
   },
   methods: {
@@ -133,6 +105,70 @@ export default {
       // 模拟图表初始化
       // 实际项目中可以使用 ECharts 等图表库
       // 这里只做示例，不实际绘制图表
+    },
+    getSystemStats() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/system/reports/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const stats = response.data
+        this.totalUsers = stats.totalUsers
+        this.totalSchools = stats.totalSchools
+        this.totalResources = stats.totalResources
+        this.totalLogins = stats.totalLogins
+      }).catch(error => {
+        console.error('获取系统统计数据失败:', error)
+      })
+    },
+    getUserGrowth() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/system/reports/user-growth', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.userGrowthData = response.data
+      }).catch(error => {
+        console.error('获取用户增长趋势失败:', error)
+      })
+    },
+    getUserRoleDistribution() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/system/reports/user-role-distribution', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.userRoleData = response.data
+      }).catch(error => {
+        console.error('获取用户角色分布失败:', error)
+      })
+    },
+    getResourceTypeDistribution() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/system/reports/resource-type-distribution', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.resourceTypeData = response.data
+      }).catch(error => {
+        console.error('获取资源类型分布失败:', error)
+      })
+    },
+    getAccessStats() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/system/reports/access-stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.accessData = response.data
+      }).catch(error => {
+        console.error('获取系统访问统计失败:', error)
+      })
     }
   }
 }

@@ -257,104 +257,102 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import AIAssistant from './components/AIAssistant.vue'
-import logo from '@/assets/logo.jpg'
+import logo from './assets/logo.jpg'
 
-export default {
-  components: {
-    AIAssistant
-  },
-  data() {
-    return {
-      activeIndex: '/',
-      isLoggedIn: false,
-      userAvatar: logo,
-      userName: '用户',
-      schoolLogo: logo,
-      schoolName: ''
-    }
-  },
-  computed: {
-    isAuthPage() {
-      const authPaths = ['/login', '/register']
-      return authPaths.includes(this.$route.path)
-    },
-    isAdminPage() {
-      return this.$route.path.startsWith('/admin')
-    },
-    isSchoolAdminPage() {
-      return this.$route.path.startsWith('/school-admin')
-    }
-  },
-  mounted() {
-    this.activeIndex = this.$route.path
-    this.checkLoginStatus()
-  },
-  watch: {
-    $route(to) {
-      this.activeIndex = to.path
-      // 每次路由变化时检查登录状态
-      this.checkLoginStatus()
-    }
-  },
-  methods: {
-    handleSelect(key) {
-      this.$router.push(key)
-    },
-    navigateTo(path) {
-      this.$router.push(path)
-    },
-    checkLoginStatus() {
-      const token = localStorage.getItem('token')
-      const user = localStorage.getItem('user')
-      const school = localStorage.getItem('school')
-      this.isLoggedIn = !!token
-      if (user) {
-        const userInfo = JSON.parse(user)
-        // 根据用户角色显示不同的名称
-        if (userInfo.role === 'super_admin' || userInfo.role === '0') {
-          this.userName = '超级管理员'
-        } else if (userInfo.role === 'school_admin' || userInfo.role === 'school') {
-          this.userName = '学校管理员'
-        } else {
-          this.userName = userInfo.name || userInfo.username
-        }
-      }
-      if (school) {
-        try {
-          const schoolInfo = JSON.parse(school)
-          if (schoolInfo) {
-            this.schoolName = schoolInfo.name || ''
-          }
-        } catch (error) {
-          console.error('解析school信息失败:', error)
-        }
-      }
-      // 始终使用默认的logo
-      this.schoolLogo = logo
-      this.userAvatar = logo
-    },
-    logout() {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      localStorage.removeItem('school')
-      this.isLoggedIn = false
-      this.schoolLogo = logo
-      this.userAvatar = logo
-      this.schoolName = ''
-      this.$router.push('/login')
-    }
-  },
-  created() {
-    // 将checkLoginStatus方法暴露给全局，以便子组件调用
-    this.$nextTick(() => {
-      if (this.$root) {
-        this.$root.checkLoginStatus = this.checkLoginStatus
-      }
-    })
-  }
+const router = useRouter()
+const route = useRoute()
+
+const activeIndex = ref('/')
+const isLoggedIn = ref(false)
+const userAvatar = ref(logo)
+const userName = ref('用户')
+const schoolLogo = ref(logo)
+const schoolName = ref('')
+
+const isAuthPage = computed(() => {
+  const authPaths = ['/login', '/register']
+  return authPaths.includes(route.path)
+})
+
+const isAdminPage = computed(() => {
+  return route.path.startsWith('/admin')
+})
+
+const isSchoolAdminPage = computed(() => {
+  return route.path.startsWith('/school-admin')
+})
+
+const handleSelect = (key) => {
+  router.push(key)
 }
+
+const navigateTo = (path) => {
+  router.push(path)
+}
+
+const checkLoginStatus = () => {
+  const token = localStorage.getItem('token')
+  const user = localStorage.getItem('user')
+  const school = localStorage.getItem('school')
+  isLoggedIn.value = !!token
+  if (user) {
+    const userInfo = JSON.parse(user)
+    // 根据用户角色显示不同的名称
+    if (userInfo.role === 'super_admin' || userInfo.role === '0') {
+      userName.value = '超级管理员'
+    } else if (userInfo.role === 'school_admin' || userInfo.role === 'school') {
+      userName.value = '学校管理员'
+    } else {
+      userName.value = userInfo.name || userInfo.username
+    }
+  }
+  if (school) {
+    try {
+      const schoolInfo = JSON.parse(school)
+      if (schoolInfo) {
+        schoolName.value = schoolInfo.name || ''
+      }
+    } catch (error) {
+      console.error('解析school信息失败:', error)
+    }
+  }
+  // 始终使用默认的logo
+  schoolLogo.value = logo
+  userAvatar.value = logo
+}
+
+const logout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  localStorage.removeItem('school')
+  isLoggedIn.value = false
+  schoolLogo.value = logo
+  userAvatar.value = logo
+  schoolName.value = ''
+  router.push('/login')
+}
+
+onMounted(() => {
+  activeIndex.value = route.path
+  checkLoginStatus()
+  
+  // 将checkLoginStatus方法暴露给全局，以便子组件调用
+  nextTick(() => {
+    if (window) {
+      window.checkLoginStatus = checkLoginStatus
+    }
+  })
+})
+
+watch(route, (to) => {
+  activeIndex.value = to.path
+  // 每次路由变化时检查登录状态
+  checkLoginStatus()
+}, { deep: true })
 </script>
 
 <style>
@@ -432,6 +430,8 @@ body {
   background-color: transparent;
   border-bottom: none;
   z-index: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .el-menu-item {
@@ -462,6 +462,8 @@ body {
   align-items: center;
   gap: 20px;
   z-index: 1;
+  flex-shrink: 0;
+  min-width: 120px;
 }
 
 .user-dropdown {
@@ -567,6 +569,7 @@ body {
   
   .logo-container {
     gap: 12px;
+    flex-shrink: 0;
   }
   
   .school-logo {
@@ -578,12 +581,16 @@ body {
   }
   
   .el-menu-demo {
-    margin-left: 40px;
+    margin-left: 20px;
   }
   
   .el-menu-item {
-    padding: 0 18px;
+    padding: 0 15px;
     font-size: 13px;
+  }
+  
+  .user-info {
+    min-width: 100px;
   }
 }
 
@@ -594,6 +601,7 @@ body {
   
   .logo-container {
     gap: 10px;
+    flex-shrink: 0;
   }
   
   .school-logo {
@@ -605,16 +613,20 @@ body {
   }
   
   .el-menu-demo {
-    margin-left: 30px;
+    margin-left: 15px;
   }
   
   .el-menu-item {
-    padding: 0 15px;
+    padding: 0 12px;
     font-size: 12px;
   }
   
   .user-name {
     font-size: 12px;
+  }
+  
+  .user-info {
+    min-width: 90px;
   }
 }
 
@@ -630,6 +642,7 @@ body {
   
   .logo-container {
     gap: 8px;
+    flex-shrink: 0;
   }
   
   .school-logo {
@@ -641,12 +654,12 @@ body {
   }
   
   .el-menu-demo {
-    margin-left: 20px;
+    margin-left: 15px;
   }
   
   .el-menu-item {
     font-size: 11px;
-    padding: 0 10px;
+    padding: 0 8px;
     height: 55px;
     line-height: 55px;
   }
@@ -657,11 +670,16 @@ body {
   }
   
   .user-name {
-    display: none;
+    font-size: 11px;
   }
   
   .user-dropdown {
     padding: 4px 8px;
+  }
+  
+  .user-info {
+    min-width: 80px;
+    gap: 10px;
   }
   
   .footer {
@@ -680,6 +698,7 @@ body {
   
   .logo-container {
     gap: 6px;
+    flex-shrink: 0;
   }
   
   .school-logo {
@@ -696,11 +715,16 @@ body {
   
   .el-menu-item {
     font-size: 10px;
-    padding: 0 8px;
+    padding: 0 6px;
   }
   
   .user-info {
-    gap: 10px;
+    gap: 8px;
+    min-width: 70px;
+  }
+  
+  .user-name {
+    font-size: 10px;
   }
   
   .el-button {

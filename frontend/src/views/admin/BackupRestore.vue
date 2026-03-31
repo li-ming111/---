@@ -82,59 +82,41 @@ export default {
         backupTime: [{ required: true, message: '请选择备份时间', trigger: 'blur' }],
         backupRetention: [{ required: true, message: '请输入备份保留数量', trigger: 'blur' }]
       },
-      backups: [
-        {
-          id: 1,
-          backupName: 'backup_20260320_100000',
-          backupType: 'manual',
-          backupSize: '10.5 MB',
-          createdAt: '2026-03-20 10:00:00'
-        },
-        {
-          id: 2,
-          backupName: 'backup_20260319_020000',
-          backupType: 'auto',
-          backupSize: '9.8 MB',
-          createdAt: '2026-03-19 02:00:00'
-        },
-        {
-          id: 3,
-          backupName: 'backup_20260318_020000',
-          backupType: 'auto',
-          backupSize: '9.2 MB',
-          createdAt: '2026-03-18 02:00:00'
-        },
-        {
-          id: 4,
-          backupName: 'backup_20260317_020000',
-          backupType: 'auto',
-          backupSize: '8.7 MB',
-          createdAt: '2026-03-17 02:00:00'
-        }
-      ]
+      backups: []
     }
   },
   methods: {
     saveBackupSettings() {
+      const token = localStorage.getItem('token')
       this.$refs.backupForm.validate((valid) => {
         if (valid) {
-          // 保存备份设置
-          localStorage.setItem('backupSettings', JSON.stringify(this.backupSettings))
-          this.$message.success('备份设置保存成功')
+          this.$axios.post('/backup/settings', this.backupSettings, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }).then(response => {
+            this.$message.success('备份设置保存成功')
+          }).catch(error => {
+            console.error('保存备份设置失败:', error)
+            this.$message.error('保存备份设置失败')
+          })
         }
       })
     },
     createBackup() {
-      // 模拟创建备份
-      const newBackup = {
-        id: this.backups.length + 1,
-        backupName: `backup_${new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_')}`,
-        backupType: 'manual',
-        backupSize: `${(Math.random() * 5 + 5).toFixed(1)} MB`,
-        createdAt: new Date().toISOString().slice(0, 19).replace('T', ' ')
-      }
-      this.backups.unshift(newBackup)
-      this.$message.success('手动备份创建成功')
+      const token = localStorage.getItem('token')
+      this.$axios.post('/backup/create', {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const newBackup = response.data
+        this.backups.unshift(newBackup)
+        this.$message.success('手动备份创建成功')
+      }).catch(error => {
+        console.error('创建备份失败:', error)
+        this.$message.error('创建备份失败')
+      })
     },
     restoreBackup(id) {
       this.$confirm('确定要从该备份恢复系统吗？这将覆盖当前系统数据！', '警告', {
@@ -142,8 +124,17 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟恢复操作
-        this.$message.success('系统恢复成功')
+        const token = localStorage.getItem('token')
+        this.$axios.post(`/backup/restore/${id}`, {}, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
+          this.$message.success('系统恢复成功')
+        }).catch(error => {
+          console.error('恢复备份失败:', error)
+          this.$message.error('恢复备份失败')
+        })
       }).catch(() => {
         // 取消恢复
       })
@@ -154,22 +145,50 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const index = this.backups.findIndex(b => b.id === id)
-        if (index !== -1) {
-          this.backups.splice(index, 1)
+        const token = localStorage.getItem('token')
+        this.$axios.delete(`/backup/delete/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
+          this.getBackups()
           this.$message.success('备份删除成功')
-        }
+        }).catch(error => {
+          console.error('删除备份失败:', error)
+          this.$message.error('删除备份失败')
+        })
       }).catch(() => {
         // 取消删除
+      })
+    },
+    getBackupSettings() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/backup/settings', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.backupSettings = response.data
+      }).catch(error => {
+        console.error('获取备份设置失败:', error)
+      })
+    },
+    getBackups() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/backup/list', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.backups = response.data
+      }).catch(error => {
+        console.error('获取备份列表失败:', error)
       })
     }
   },
   mounted() {
-    // 从本地存储加载备份设置
-    const savedSettings = localStorage.getItem('backupSettings')
-    if (savedSettings) {
-      this.backupSettings = JSON.parse(savedSettings)
-    }
+    this.getBackupSettings()
+    this.getBackups()
   }
 }
 </script>

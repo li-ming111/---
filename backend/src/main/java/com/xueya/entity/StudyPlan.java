@@ -1,6 +1,7 @@
 package com.xueya.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -10,17 +11,36 @@ import java.io.Serializable;
 public class StudyPlan implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
+    
+    @TableField("user_id")
     private Long userId;
+    
+    @TableField("user_name")
     private String userName;
+    
+    @TableField("school_id")
     private Long schoolId;
+    
     private String title;
+    
     private String description;
+    
+    @TableField("start_date")
     private String startDate;
+    
+    @TableField("end_date")
     private String endDate;
+    
     private String status;
+    
     private Double progress;
+    
     private String priority;
+    
+    @TableField("create_time")
     private String createTime;
+    
+    @TableField("update_time")
     private String updateTime;
 
     // Getters and Setters

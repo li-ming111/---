@@ -215,19 +215,20 @@ public class AuthController {
             return ResponseUtil.error("邮箱格式不正确");
         }
 
-        // 验证密码复杂度
+        // 验证密码长度
         if (!ValidationUtil.isPasswordLengthValid(user.getPassword())) {
             return ResponseUtil.error("密码至少6位");
         }
-        if (!ValidationUtil.isPasswordContainsLetter(user.getPassword())) {
-            return ResponseUtil.error("密码必须包含字母");
-        }
-        if (!ValidationUtil.isPasswordContainsDigit(user.getPassword())) {
-            return ResponseUtil.error("密码必须包含数字");
-        }
-        if (!ValidationUtil.isPasswordContainsSpecialChar(user.getPassword())) {
-            return ResponseUtil.error("密码必须包含特殊字符");
-        }
+        // 暂时注释掉其他密码复杂度要求
+        // if (!ValidationUtil.isPasswordContainsLetter(user.getPassword())) {
+        //     return ResponseUtil.error("密码必须包含字母");
+        // }
+        // if (!ValidationUtil.isPasswordContainsDigit(user.getPassword())) {
+        //     return ResponseUtil.error("密码必须包含数字");
+        // }
+        // if (!ValidationUtil.isPasswordContainsSpecialChar(user.getPassword())) {
+        //     return ResponseUtil.error("密码必须包含特殊字符");
+        // }
 
         // 从身份证号提取出生日期并计算年龄
         String idCard = user.getIdCard();
@@ -257,14 +258,9 @@ public class AuthController {
             studentStage = "初中教育";
         } else if (age >= 15 && age <= 18) {
             studentStage = "高中教育";
-        } else if (age >= 18 && age <= 21) {
-            studentStage = "大学专科";
-        } else if (age >= 18 && age <= 22) {
-            studentStage = "大学本科";
-        } else if (age >= 22 && age <= 25) {
-            studentStage = "硕士研究生";
-        } else if (age >= 25) {
-            studentStage = "博士研究生";
+        } else if (age >= 18) {
+            // 没有学校认证的情况下，只识别为高等教育
+            studentStage = "高等教育";
         } else {
             studentStage = "未入学";
         }
@@ -534,15 +530,21 @@ public class AuthController {
         try {
             String email = request.get("email");
             String newPassword = request.get("newPassword");
+            String idCard = request.get("idCard");
 
-            if (email == null || newPassword == null) {
+            if ((email == null && idCard == null) || newPassword == null) {
                 response.put("success", false);
-                response.put("message", "邮箱和新密码不能为空");
+                response.put("message", "邮箱或身份证号和新密码不能为空");
                 return response;
             }
 
             // 查找用户
-            User user = userService.getOne(new QueryWrapper<User>().eq("email", email));
+            User user = null;
+            if (idCard != null) {
+                user = userService.getUserByIdCard(idCard);
+            } else {
+                user = userService.getOne(new QueryWrapper<User>().eq("email", email));
+            }
             if (user == null) {
                 response.put("success", false);
                 response.put("message", "用户不存在");
@@ -558,7 +560,7 @@ public class AuthController {
             return response;
         } catch (Exception e) {
             response.put("success", false);
-            response.put("message", "密码重置失败");
+            response.put("message", "密码重置失败: " + e.getMessage());
             return response;
         }
     }
@@ -640,7 +642,7 @@ public class AuthController {
             testUser.setGender("男");
             testUser.setAge(20);
             testUser.setGrade("2023");
-            testUser.setStudentId("2023020616");
+            // 不设置学号，让用户自己认证时绑定
             testUser.setEmail("test2023020616@example.com");
             testUser.setPhone("13800138001");
             testUser.setSchoolId(1L); // 设置学校ID为1（哈尔滨信息工程学院）

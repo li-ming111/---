@@ -30,6 +30,7 @@ import com.xueya.service.ReplyService;
 import com.xueya.service.LearningStatsService;
 import com.xueya.service.SkillService;
 import com.xueya.service.CampusActivityService;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -265,16 +266,23 @@ public class DataInitController {
             
             // 创建社区数据
             System.out.println("创建社区数据...");
-            Community community = new Community();
-            community.setName("计算机科学与技术专业社区");
-            community.setDescription("计算机科学与技术专业的学习交流社区");
-            community.setType("专业");
-            community.setCategory("计算机");
-            community.setCreatorId(STUDENT_USER_ID);
-            community.setMemberCount(1);
-            community.setStatus("活跃");
-            communityService.save(community);
-            System.out.println("社区创建成功");
+            QueryWrapper<Community> communityQuery = new QueryWrapper<>();
+            communityQuery.eq("name", "计算机科学与技术专业社区");
+            Community community = communityService.getOne(communityQuery);
+            if (community == null) {
+                community = new Community();
+                community.setName("计算机科学与技术专业社区");
+                community.setDescription("计算机科学与技术专业的学习交流社区");
+                community.setType("专业");
+                community.setCategory("计算机");
+                community.setCreatorId(STUDENT_USER_ID);
+                community.setMemberCount(1);
+                community.setStatus("活跃");
+                communityService.save(community);
+                System.out.println("社区创建成功");
+            } else {
+                System.out.println("社区已存在，跳过创建");
+            }
             
             // 创建学习小组
             StudyGroup studyGroup = new StudyGroup();

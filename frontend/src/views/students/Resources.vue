@@ -199,19 +199,32 @@ export default {
     },
     getResources() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/resources/list', {
+      this.$axios.get('/resources/list', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         }).then(response => {
-          this.resources = response.data || []
+          const data = response.data || []
+          console.log('原始资源数据:', data)
+          // 去重处理：根据title和category去重
+          const uniqueResources = []
+          const resourceKeys = new Set()
+          data.forEach(resource => {
+            const key = resource.title + '-' + resource.category
+            if (!resourceKeys.has(key)) {
+              resourceKeys.add(key)
+              uniqueResources.push(resource)
+            }
+          })
+          console.log('去重后资源数据:', uniqueResources)
+          this.resources = uniqueResources
         }).catch(error => {
           console.error('获取资源列表失败:', error)
         })
     },
     getMajors() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/majors/list', {
+      this.$axios.get('/majors/list', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -223,13 +236,24 @@ export default {
     },
     searchResources() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/resources/search', {
+      this.$axios.get('/resources/search', {
         params: { keyword: this.searchForm.keyword },
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.resources = response.data
+        const data = response.data || []
+        // 去重处理：根据title和category去重
+        const uniqueResources = []
+        const resourceKeys = new Set()
+        data.forEach(resource => {
+          const key = resource.title + '-' + resource.category
+          if (!resourceKeys.has(key)) {
+            resourceKeys.add(key)
+            uniqueResources.push(resource)
+          }
+        })
+        this.resources = uniqueResources
       }).catch(error => {
         console.error('搜索资源失败:', error)
       })
@@ -245,7 +269,7 @@ export default {
         type: 'warning'
       }).then(() => {
         const token = localStorage.getItem('token')
-        this.$axios.delete(`/api/resources/${resourceId}`, {
+        this.$axios.delete(`/resources/${resourceId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -272,7 +296,7 @@ export default {
       formData.append('schoolId', JSON.parse(localStorage.getItem('school')).id)
       formData.append('studentStage', '大学') // 添加学生阶段参数
       
-      this.$axios.post('/api/resources/upload', formData, {
+      this.$axios.post('/resources/upload', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

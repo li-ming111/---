@@ -5,10 +5,16 @@
       <template #header>
         <div class="card-header">
           <span class="card-title">学习计划管理</span>
-          <el-button type="primary" @click="dialogVisible = true" class="create-btn">
-            <el-icon><Plus /></el-icon>
-            创建新计划
-          </el-button>
+          <div class="header-buttons">
+            <el-button type="primary" @click="dialogVisible = true" class="create-btn">
+              <el-icon><Plus /></el-icon>
+              创建新计划
+            </el-button>
+            <el-button type="success" @click="aiRecommendDialogVisible = true" class="ai-recommend-btn">
+              <el-icon><Cpu /></el-icon>
+              AI智能推荐
+            </el-button>
+          </div>
         </div>
       </template>
       
@@ -24,8 +30,16 @@
             <div class="plan-description">{{ scope.row.description }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="startTime" label="开始时间" width="180" />
-        <el-table-column prop="endTime" label="结束时间" width="180" />
+        <el-table-column label="开始时间" width="180">
+          <template #default="scope">
+            {{ formatDateTime(scope.row.startDate || scope.row.start_date) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="结束时间" width="180">
+          <template #default="scope">
+            {{ formatDateTime(scope.row.endDate || scope.row.end_date) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="progress" label="进度" width="150">
           <template #default="scope">
             <div class="progress-container">
@@ -75,8 +89,16 @@
         <el-table :data="planDetails" style="width: 100%" class="tasks-table">
           <el-table-column prop="taskName" label="任务名称" width="200" />
           <el-table-column prop="description" label="任务描述" />
-          <el-table-column prop="startTime" label="开始时间" width="180" />
-          <el-table-column prop="endTime" label="结束时间" width="180" />
+          <el-table-column label="开始时间" width="180">
+            <template #default="scope">
+              {{ formatDateTime(scope.row.startDate || scope.row.start_date) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="结束时间" width="180">
+            <template #default="scope">
+              {{ formatDateTime(scope.row.endDate || scope.row.end_date) }}
+            </template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" width="120">
             <template #default="scope">
               <el-tag :type="getStatusType(scope.row.status)" class="status-tag">
@@ -92,7 +114,7 @@
     <el-dialog
       v-model="dialogVisible"
       title="创建学习计划"
-      width="800px"
+      width="900px"
       class="custom-dialog"
     >
       <el-form :model="newPlan" label-width="100px" class="create-form">
@@ -152,11 +174,51 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- AI智能推荐学习计划对话框 -->
+    <el-dialog
+      v-model="aiRecommendDialogVisible"
+      title="AI智能推荐学习计划"
+      width="600px"
+      class="custom-dialog"
+    >
+      <el-form :model="aiRecommendForm" label-width="120px" class="create-form">
+        <el-form-item label="教育类型">
+          <el-select v-model="aiRecommendForm.educationType" class="select-field">
+            <el-option label="本科" value="本科" />
+            <el-option label="研究生" value="研究生" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="专业">
+          <el-select v-model="aiRecommendForm.major" class="select-field">
+            <el-option label="计算机科学与技术" value="计算机科学与技术" />
+            <el-option label="金融学" value="金融学" />
+            <el-option label="经济学" value="经济学" />
+            <el-option label="管理学" value="管理学" />
+            <el-option label="教育学" value="教育学" />
+            <el-option label="医学" value="医学" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="学习年限">
+          <el-select v-model="aiRecommendForm.years" class="select-field">
+            <el-option label="3年" value="3" />
+            <el-option label="4年" value="4" />
+            <el-option label="5年" value="5" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="aiRecommendDialogVisible = false" class="cancel-btn">取消</el-button>
+          <el-button type="success" @click="generateAIRecommendedPlan" class="confirm-btn">生成推荐计划</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { Plus, View, Refresh, Document, List, Delete } from '@element-plus/icons-vue'
+import { Plus, View, Refresh, Document, List, Delete, Cpu } from '@element-plus/icons-vue'
 
 export default {
   components: {
@@ -165,7 +227,8 @@ export default {
     Refresh,
     Document,
     List,
-    Delete
+    Delete,
+    Cpu
   },
   data() {
     return {
@@ -174,6 +237,7 @@ export default {
       currentPlan: null,
       dialogVisible: false,
       detailDialogVisible: false,
+      aiRecommendDialogVisible: false,
       newPlan: {
         title: '',
         description: '',
@@ -185,6 +249,11 @@ export default {
           startTime: new Date(),
           endTime: new Date()
         }]
+      },
+      aiRecommendForm: {
+        educationType: '本科',
+        major: '计算机科学与技术',
+        years: 4
       }
     }
   },
@@ -204,12 +273,48 @@ export default {
       const user = JSON.parse(localStorage.getItem('user'))
       if (!user) return
       const userId = user.id
-      this.$axios.get(`/api/study-plans/user/${userId}`, {
+      this.$axios.get(`/study-plans/user/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.studyPlans = response.data
+        console.log('后端返回的原始数据:', response.data)
+        // 打印第一个计划的详细字段信息
+        if (response.data && response.data.length > 0) {
+          const firstPlan = response.data[0]
+          console.log('第一个计划的所有字段:', Object.keys(firstPlan))
+          console.log('startDate:', firstPlan.startDate)
+          console.log('start_date:', firstPlan.start_date)
+          console.log('endDate:', firstPlan.endDate)
+          console.log('end_date:', firstPlan.end_date)
+        }
+        // 去重处理：根据ID去重
+        const uniquePlans = []
+        const planIds = new Set()
+        response.data.forEach(plan => {
+          if (!planIds.has(plan.id)) {
+            planIds.add(plan.id)
+            // 创建新对象，确保响应式更新
+            const processedPlan = { ...plan }
+            // 处理字段名映射：将下划线命名转换为驼峰命名
+            if (processedPlan.start_date !== undefined && processedPlan.start_date !== null && processedPlan.start_date !== '') {
+              processedPlan.startDate = processedPlan.start_date
+            }
+            if (processedPlan.end_date !== undefined && processedPlan.end_date !== null && processedPlan.end_date !== '') {
+              processedPlan.endDate = processedPlan.end_date
+            }
+            // 如果没有时间字段，设置为空字符串
+            if (processedPlan.startDate === undefined || processedPlan.startDate === null) {
+              processedPlan.startDate = ''
+            }
+            if (processedPlan.endDate === undefined || processedPlan.endDate === null) {
+              processedPlan.endDate = ''
+            }
+            uniquePlans.push(processedPlan)
+          }
+        })
+        this.studyPlans = uniquePlans
+        console.log('处理后的学习计划:', this.studyPlans)
       }).catch(error => {
         console.error('获取学习计划失败:', error)
       })
@@ -217,19 +322,30 @@ export default {
     viewPlan(plan) {
       this.currentPlan = plan
       const token = localStorage.getItem('token')
-      this.$axios.get(`/api/study-plans/detail/plan/${plan.id}`, {
+      this.$axios.get(`/study-plans/detail/plan/${plan.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.planDetails = response.data
+        console.log('后端返回的任务原始数据:', response.data)
+        // 处理任务的开始时间和结束时间字段名
+        const processedDetails = response.data.map(detail => {
+          if (!detail.startDate && detail.start_date) detail.startDate = detail.start_date
+          if (!detail.endDate && detail.end_date) detail.endDate = detail.end_date
+          if (!detail.startDate) detail.startDate = ''
+          if (!detail.endDate) detail.endDate = ''
+          return detail
+        })
+        this.planDetails = processedDetails
+        console.log('处理后的任务数据:', this.planDetails)
+        this.detailDialogVisible = true
       }).catch(error => {
         console.error('获取学习计划详情失败:', error)
       })
     },
     adjustPlan(planId) {
       const token = localStorage.getItem('token')
-      this.$axios.put(`/api/study-plans/progress/${planId}`, null, {
+      this.$axios.put(`/study-plans/progress/${planId}`, null, {
         params: { progress: 50 },
         headers: {
           'Authorization': `Bearer ${token}`
@@ -262,12 +378,12 @@ export default {
       const planData = {
         title: this.newPlan.title,
         description: this.newPlan.description,
-        startTime: this.newPlan.startTime,
-        endTime: this.newPlan.endTime,
+        startDate: this.newPlan.startTime,
+        endDate: this.newPlan.endTime,
         userId: user.id,
         schoolId: school.id
       }
-      this.$axios.post('/api/study-plans/create', planData, {
+      this.$axios.post('/study-plans/create', planData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -296,6 +412,95 @@ export default {
         case '未开始': return 'info'
         case '已暂停': return 'warning'
         default: return 'info'
+      }
+    },
+    generateAIRecommendedPlan() {
+      const token = localStorage.getItem('token')
+      const user = JSON.parse(localStorage.getItem('user'))
+      if (!user) {
+        this.$message.error('请先登录')
+        return
+      }
+      
+      const userId = user.id
+      const { educationType, major, years } = this.aiRecommendForm
+      
+      // 将years转换为整数
+      const yearsInt = parseInt(years)
+      
+      this.$axios.post('/study-plans/ai-recommend', null, {
+        params: {
+          userId,
+          educationType,
+          major,
+          years: yearsInt
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        console.log('后端返回的AI推荐计划:', response.data)
+        this.$message.success('AI推荐学习计划生成成功')
+        this.aiRecommendDialogVisible = false
+        // 创建新对象，确保响应式更新
+        const newPlan = { ...response.data }
+        // 处理字段名映射：将下划线命名转换为驼峰命名
+        if (newPlan.start_date !== undefined && newPlan.start_date !== null) {
+          newPlan.startDate = newPlan.start_date
+        }
+        if (newPlan.end_date !== undefined && newPlan.end_date !== null) {
+          newPlan.endDate = newPlan.end_date
+        }
+        // 如果没有时间字段，设置为空字符串
+        if (newPlan.startDate === undefined || newPlan.startDate === null) {
+          newPlan.startDate = ''
+        }
+        if (newPlan.endDate === undefined || newPlan.endDate === null) {
+          newPlan.endDate = ''
+        }
+        
+        // 检查是否已存在该计划
+        const existingIndex = this.studyPlans.findIndex(plan => plan.id === newPlan.id)
+        if (existingIndex > -1) {
+          // 更新现有计划，使用Vue的响应式方法
+          this.studyPlans.splice(existingIndex, 1, newPlan)
+        } else {
+          // 添加新计划
+          this.studyPlans.unshift(newPlan)
+        }
+        console.log('更新后的学习计划列表:', this.studyPlans)
+      }).catch(error => {
+        console.error('生成AI推荐学习计划失败:', error)
+        if (error.response && error.response.data) {
+          this.$message.error('生成失败：' + error.response.data)
+        } else {
+          this.$message.error('生成AI推荐学习计划失败，请稍后重试')
+        }
+      })
+    },
+    formatDateTime(dateTimeStr) {
+      if (!dateTimeStr || dateTimeStr === '' || dateTimeStr === null || dateTimeStr === undefined) {
+        return ''
+      }
+      // 如果已经是格式化的字符串，直接返回
+      if (dateTimeStr.length === 19 && dateTimeStr.includes('-') && dateTimeStr.includes(':')) {
+        return dateTimeStr
+      }
+      // 尝试解析日期
+      try {
+        const date = new Date(dateTimeStr)
+        if (isNaN(date.getTime())) {
+          return dateTimeStr
+        }
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        const seconds = String(date.getSeconds()).padStart(2, '0')
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+      } catch (e) {
+        return dateTimeStr
       }
     }
   }
@@ -329,6 +534,37 @@ export default {
   align-items: center;
   padding: 15px 30px;
   border-bottom: 1px solid #e4e7ed;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.ai-recommend-btn {
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.ai-recommend-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.select-field {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.select-field:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
 .card-title {
@@ -509,12 +745,14 @@ export default {
 
 .task-item {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   margin-bottom: 15px;
   padding: 15px;
   background: rgba(245, 247, 250, 0.8);
   border-radius: 12px;
   transition: all 0.3s ease;
+  gap: 10px;
 }
 
 .task-item:hover {
@@ -522,20 +760,18 @@ export default {
 }
 
 .task-name-input {
-  width: 200px;
-  margin-right: 15px;
+  width: 180px;
   border-radius: 8px;
 }
 
 .task-description-input {
   flex: 1;
-  margin-right: 15px;
+  min-width: 200px;
   border-radius: 8px;
 }
 
 .task-date-picker {
-  width: 180px;
-  margin-right: 15px;
+  width: 160px;
   border-radius: 8px;
 }
 

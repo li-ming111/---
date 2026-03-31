@@ -117,6 +117,12 @@
               </div>
               <span class="feature-text">通知管理</span>
             </div>
+            <div class="feature-item hover-lift" @click="$router.push('/school-admin/roles')">
+              <div class="feature-icon plan-icon">
+                <i class="el-icon-s-custom"></i>
+              </div>
+              <span class="feature-text">角色管理</span>
+            </div>
           </div>
         </el-card>
       </div>

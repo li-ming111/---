@@ -49,8 +49,6 @@
 </template>
 
 <script>
-import axios from 'axios';
-
 export default {
   name: 'CampusAdaptation',
   data() {
@@ -67,11 +65,11 @@ export default {
     async loadCampusData() {
       try {
         // 加载校园课程
-        const coursesResponse = await axios.get('/campus/courses');
+        const coursesResponse = await this.$axios.get('/campus/courses');
         this.campusCourses = coursesResponse.data;
         
         // 加载校园活动
-        const activitiesResponse = await axios.get('/campus/activities');
+        const activitiesResponse = await this.$axios.get('/campus/activities');
         this.campusActivities = activitiesResponse.data;
       } catch (error) {
         console.error('加载校园数据失败:', error);

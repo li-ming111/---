@@ -73,83 +73,7 @@ export default {
       currentPage: 1,
       pageSize: 10,
       totalLogs: 0,
-      logs: [
-        {
-          id: 1,
-          adminName: '超级管理员',
-          operationType: 'login',
-          operationContent: '登录系统',
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          createdAt: '2026-03-20 10:00:00'
-        },
-        {
-          id: 2,
-          adminName: '超级管理员',
-          operationType: 'add',
-          operationContent: '添加用户：testuser',
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          createdAt: '2026-03-20 10:05:00'
-        },
-        {
-          id: 3,
-          adminName: '超级管理员',
-          operationType: 'edit',
-          operationContent: '编辑用户：testuser',
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          createdAt: '2026-03-20 10:10:00'
-        },
-        {
-          id: 4,
-          adminName: '超级管理员',
-          operationType: 'delete',
-          operationContent: '删除用户：testuser',
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          createdAt: '2026-03-20 10:15:00'
-        },
-        {
-          id: 5,
-          adminName: '超级管理员',
-          operationType: 'settings',
-          operationContent: '修改系统设置',
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          createdAt: '2026-03-20 10:20:00'
-        },
-        {
-          id: 6,
-          adminName: '超级管理员',
-          operationType: 'logout',
-          operationContent: '退出系统',
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          createdAt: '2026-03-20 10:25:00'
-        }
-      ]
-    }
-  },
-  computed: {
-    filteredLogs() {
-      let result = this.logs
-      if (this.dateRange && this.dateRange.length === 2) {
-        const startDate = this.dateRange[0]
-        const endDate = this.dateRange[1]
-        result = result.filter(log => {
-          const logDate = new Date(log.createdAt)
-          return logDate >= startDate && logDate <= endDate
-        })
-      }
-      if (this.operationType) {
-        result = result.filter(log => log.operationType === this.operationType)
-      }
-      if (this.adminName) {
-        result = result.filter(log => log.adminName.includes(this.adminName))
-      }
-      this.totalLogs = result.length
-      return result.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+      logs: []
     }
   },
   methods: {
@@ -177,18 +101,72 @@ export default {
     },
     searchLogs() {
       this.currentPage = 1
+      this.getAuditLogs()
     },
     exportLogs() {
-      // 模拟导出功能
-      this.$message.success('日志导出成功')
+      const token = localStorage.getItem('token')
+      const params = {
+        startDate: this.dateRange && this.dateRange.length === 2 ? this.dateRange[0] : '',
+        endDate: this.dateRange && this.dateRange.length === 2 ? this.dateRange[1] : '',
+        operationType: this.operationType,
+        adminName: this.adminName
+      }
+      this.$axios.post('/audit-logs/export', params, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const result = response.data
+        if (result.success) {
+          // 模拟下载
+          this.$message.success('日志导出成功')
+        }
+      }).catch(error => {
+        console.error('导出日志失败:', error)
+        this.$message.error('导出日志失败')
+      })
     },
     handleSizeChange(size) {
       this.pageSize = size
       this.currentPage = 1
+      this.getAuditLogs()
     },
     handleCurrentChange(current) {
       this.currentPage = current
+      this.getAuditLogs()
+    },
+    getAuditLogs() {
+      const token = localStorage.getItem('token')
+      const params = {
+        page: this.currentPage,
+        size: this.pageSize
+      }
+      if (this.dateRange && this.dateRange.length === 2) {
+        params.startDate = this.dateRange[0]
+        params.endDate = this.dateRange[1]
+      }
+      if (this.operationType) {
+        params.operationType = this.operationType
+      }
+      if (this.adminName) {
+        params.adminName = this.adminName
+      }
+      this.$axios.get('/audit-logs/list', {
+        params: params,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const result = response.data
+        this.logs = result.data
+        this.totalLogs = result.total
+      }).catch(error => {
+        console.error('获取审计日志失败:', error)
+      })
     }
+  },
+  mounted() {
+    this.getAuditLogs()
   }
 }
 </script>

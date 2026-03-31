@@ -14,4 +14,6 @@ public interface StudyPlanService extends IService<StudyPlan> {
     boolean deletePlan(Long id);
     boolean updateProgress(Long id, Double progress);
     List<StudyPlan> getPlansByStatus(String status);
+    // AI智能推荐学习计划
+    StudyPlan generateAIRecommendedPlan(Long userId, String educationType, String major, Integer years);
 }

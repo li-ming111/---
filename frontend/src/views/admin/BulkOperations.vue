@@ -235,7 +235,7 @@ export default {
       const formData = new FormData()
       formData.append('file', this.selectedFile.raw)
       
-      this.$axios.post('/api/admin/bulk/import-users', formData, {
+      this.$axios.post('/admin/bulk/import-users', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -257,7 +257,7 @@ export default {
     },
     downloadTemplate() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/admin/bulk/download-template', {
+      this.$axios.get('/admin/bulk/download-template', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -276,7 +276,7 @@ export default {
     },
     exportUsers() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/admin/bulk/export-users', {
+      this.$axios.get('/admin/bulk/export-users', {
         params: {
           type: 'all'
         },
@@ -305,7 +305,7 @@ export default {
       const userIds = this.selectedUsers.map(user => user.id)
       const token = localStorage.getItem('token')
       
-      this.$axios.get('/api/admin/bulk/export-users', {
+      this.$axios.get('/admin/bulk/export-users', {
         params: {
           type: 'selected',
           userIds: userIds
@@ -338,7 +338,7 @@ export default {
           const userIds = this.selectedUsers.map(user => user.id)
           const token = localStorage.getItem('token')
           
-          this.$axios.put('/api/admin/bulk/update-users', {
+          this.$axios.put('/admin/bulk/update-users', {
             userIds: userIds,
             updateData: this.bulkForm
           }, {
@@ -367,7 +367,7 @@ export default {
           this.isLoading = true
           const token = localStorage.getItem('token')
           
-          this.$axios.post('/api/admin/bulk/send-notification', this.notificationForm, {
+          this.$axios.post('/admin/bulk/send-notification', this.notificationForm, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -399,7 +399,7 @@ export default {
       this.isLoading = true
       const token = localStorage.getItem('token')
       
-      this.$axios.get('/api/admin/bulk/users', {
+      this.$axios.get('/admin/bulk/users', {
         params: {
           search: this.searchQuery
         },
@@ -418,7 +418,7 @@ export default {
     getSchools() {
       const token = localStorage.getItem('token')
       
-      this.$axios.get('/api/admin/bulk/schools', {
+      this.$axios.get('/admin/bulk/schools', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

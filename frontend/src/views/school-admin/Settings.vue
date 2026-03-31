@@ -95,7 +95,7 @@ export default {
         try {
           const schoolInfo = JSON.parse(school)
           if (schoolInfo && schoolInfo.id) {
-            this.$axios.get(`/api/school/${schoolInfo.id}`, {
+            this.$axios.get(`/schools/${schoolInfo.id}`, {
               headers: {
                 'Authorization': `Bearer ${token}`
               }
@@ -136,7 +136,7 @@ export default {
                   email: this.schoolSettings.contactEmail,
                   description: this.schoolSettings.schoolDescription
                 }
-                this.$axios.put(`/api/school/${schoolInfo.id}`, schoolData, {
+                this.$axios.put(`/schools/${schoolInfo.id}`, schoolData, {
                   headers: {
                     'Authorization': `Bearer ${token}`
                   }

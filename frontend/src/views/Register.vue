@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+// 使用全局axios实例，不单独导入
 
 export default {
   data() {
@@ -122,7 +122,7 @@ export default {
               email: this.registerForm.email,
               password: this.registerForm.password
             }
-            const response = await axios.post('/api/auth/register', registerData)
+            const response = await this.$axios.post('/auth/register', registerData)
             if (response.data.success) {
               if (response.data.needSchoolVerification) {
                 this.$message.success('注册成功，请认证学校信息')

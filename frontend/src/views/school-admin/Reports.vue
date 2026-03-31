@@ -92,11 +92,71 @@
 export default {
   data() {
     return {
-      totalStudents: 1250,
-      totalTeachers: 85,
-      totalResources: 320,
-      totalCourses: 120,
-      detailedData: [
+      totalStudents: 0,
+      totalTeachers: 0,
+      totalResources: 0,
+      totalCourses: 0,
+      detailedData: []
+    }
+  },
+  mounted() {
+    this.getSchoolStatistics()
+  },
+  methods: {
+    initCharts() {
+      // 模拟图表初始化
+      console.log('初始化报表图表...')
+      // 实际项目中可以使用 ECharts 等图表库
+    },
+    getSchoolStatistics() {
+      const token = localStorage.getItem('token')
+      const school = localStorage.getItem('school')
+      if (!school) {
+        this.$message.error('未找到学校信息')
+        return
+      }
+      try {
+        const schoolData = JSON.parse(school)
+        if (!schoolData || !schoolData.id) {
+          this.$message.error('学校信息格式错误')
+          return
+        }
+        const schoolId = schoolData.id
+        
+        this.$axios.get(`/statistics/school/${schoolId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
+          const data = response.data
+          if (data) {
+            this.totalStudents = data.totalStudents || 0
+            this.totalResources = data.totalResources || 0
+            // 教师数量和课程数量需要额外获取
+            this.getTeachersCount()
+            this.getCoursesCount()
+            this.getDetailedData()
+          }
+        }).catch(error => {
+          console.error('获取学校统计数据失败:', error)
+          this.$message.error('获取学校统计数据失败')
+        })
+      } catch (error) {
+        console.error('解析学校信息失败:', error)
+        this.$message.error('解析学校信息失败')
+      }
+    },
+    getTeachersCount() {
+      // 模拟获取教师数量
+      this.totalTeachers = 85
+    },
+    getCoursesCount() {
+      // 模拟获取课程数量
+      this.totalCourses = 120
+    },
+    getDetailedData() {
+      // 模拟获取详细数据
+      this.detailedData = [
         { category: '大一学生', count: 320, percentage: '25.6%', trend: 5 },
         { category: '大二学生', count: 310, percentage: '24.8%', trend: 3 },
         { category: '大三学生', count: 300, percentage: '24.0%', trend: -2 },
@@ -106,16 +166,6 @@ export default {
         { category: '讲师', count: 45, percentage: '52.9%', trend: 1 }
       ]
     }
-  },
-  methods: {
-    initCharts() {
-      // 模拟图表初始化
-      console.log('初始化报表图表...')
-      // 实际项目中可以使用 ECharts 等图表库
-    }
-  },
-  mounted() {
-    this.initCharts()
   }
 }
 </script>

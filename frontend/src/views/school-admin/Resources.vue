@@ -190,7 +190,7 @@ export default {
             formData.append('schoolId', schoolInfo.id)
             formData.append('file', null) // 由于没有文件上传，添加一个空文件
             
-            this.$axios.put('/api/resources/update', formData, {
+            this.$axios.put('/resources/update', formData, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'multipart/form-data'
@@ -215,7 +215,7 @@ export default {
             formData.append('schoolId', schoolInfo.id)
             formData.append('file', null) // 由于没有文件上传，添加一个空文件
             
-            this.$axios.post('/api/resources/upload', formData, {
+            this.$axios.post('/resources/upload', formData, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'multipart/form-data'
@@ -243,7 +243,7 @@ export default {
         type: 'warning'
       }).then(() => {
         const token = localStorage.getItem('token')
-        this.$axios.delete(`/api/resources/${id}`, {
+        this.$axios.delete(`/resources/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

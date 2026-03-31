@@ -12,6 +12,24 @@
         </div>
       </template>
       
+      <!-- 社群功能提示 -->
+      <div class="community-features">
+        <el-alert
+          title="社群功能介绍"
+          type="info"
+          :closable="false"
+          show-icon
+          class="feature-alert"
+        >
+          <div class="feature-content">
+            <p>🎉 <strong>社群价值：</strong>通过加入社群，你可以与同学交流学习经验、分享资源、共同成长</p>
+            <p>📊 <strong>社群类型：</strong>专业社群、目标社群、兴趣社群</p>
+            <p>💬 <strong>互动方式：</strong>讨论交流、资源共享、活动参与</p>
+            <p>🚀 <strong>成长路径：</strong>从学习者到分享者，建立个人影响力</p>
+          </div>
+        </el-alert>
+      </div>
+      
       <!-- 社群分类标签 -->
       <div class="category-tabs">
         <el-tag 
@@ -85,6 +103,51 @@
           </p>
           <p><strong>创建时间:</strong> {{ currentCommunity.createTime }}</p>
         </div>
+        <el-divider />
+        <div class="community-benefits">
+          <h4 class="benefits-title">加入社群的好处</h4>
+          <ul class="benefits-list">
+            <li class="benefit-item">📚 分享学习资源和经验</li>
+            <li class="benefit-item">🤝 与志同道合的同学交流</li>
+            <li class="benefit-item">💡 获得学习和职业发展建议</li>
+            <li class="benefit-item">🎯 共同制定和完成学习目标</li>
+            <li class="benefit-item">📢 参与社群活动和讨论</li>
+            <li class="benefit-item">🌟 拓展人脉和社交圈</li>
+          </ul>
+        </div>
+        <el-divider />
+        <div class="community-discussion">
+          <h4 class="discussion-title">社群讨论区</h4>
+          <div class="discussion-input">
+            <el-input
+              v-model="newPost.content"
+              type="textarea"
+              :rows="3"
+              placeholder="分享你的想法、问题或资源..."
+              class="discussion-textarea"
+            />
+            <el-button type="primary" @click="createPost" class="post-btn">
+              发布
+            </el-button>
+          </div>
+          <div class="discussion-list">
+            <div v-if="discussions.length === 0" class="empty-discussion">
+              <p>还没有讨论内容，快来发布第一条吧！</p>
+            </div>
+            <div v-for="post in discussions" :key="post.id" class="discussion-item">
+              <div class="post-header">
+                <span class="post-author">匿名用户</span>
+                <span class="post-time">{{ post.createTime || new Date().toLocaleString() }}</span>
+              </div>
+              <div class="post-content">{{ post.content }}</div>
+              <div class="post-actions">
+                <el-button size="small" @click="replyPost(post)">回复</el-button>
+                <el-button size="small">点赞</el-button>
+                <el-button size="small">分享</el-button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </el-dialog>
 
@@ -151,6 +214,10 @@ export default {
         description: '',
         type: '',
         category: ''
+      },
+      discussions: [],
+      newPost: {
+        content: ''
       }
     }
   },
@@ -171,16 +238,26 @@ export default {
     },
     getCommunities() {
       const token = localStorage.getItem('token')
-      let url = '/api/communities/all'
+      let url = '/communities/all'
       if (this.activeCategory !== 'all') {
-        url = `/api/communities/type/${this.activeCategory}`
+        url = `/communities/type/${this.activeCategory}`
       }
       this.$axios.get(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.communities = response.data
+        const data = response.data || []
+        // 去重处理：根据ID去重
+        const uniqueCommunities = []
+        const communityIds = new Set()
+        data.forEach(community => {
+          if (community.id && !communityIds.has(community.id)) {
+            communityIds.add(community.id)
+            uniqueCommunities.push(community)
+          }
+        })
+        this.communities = uniqueCommunities
       }).catch(error => {
         console.error('获取社群列表失败:', error)
       })
@@ -198,20 +275,44 @@ export default {
       
       const community = {
         ...this.newCommunity,
-        creatorId: user.id
+        creatorId: user.id,
+        memberCount: 1,
+        status: '活跃',
+        createTime: new Date().toISOString()
       }
       
-      this.$axios.post('/api/communities/create', community, {
+      this.$axios.post('/communities/create', community, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.$message.success('社群创建成功')
+        this.$message.success('社区创建成功')
         this.dialogVisible = false
         this.getCommunities()
       }).catch(error => {
-        console.error('创建社群失败:', error)
+        console.error('创建社区失败:', error)
       })
+    },
+    createPost() {
+      if (!this.newPost.content.trim()) {
+        this.$message.warning('请输入内容')
+        return
+      }
+      
+      // 模拟发布帖子
+      const newPost = {
+        id: Date.now(),
+        content: this.newPost.content,
+        createTime: new Date().toLocaleString()
+      }
+      
+      this.discussions.unshift(newPost)
+      this.newPost.content = ''
+      this.$message.success('发布成功')
+    },
+    replyPost(post) {
+      // 模拟回复功能
+      this.$message.info('回复功能开发中')
     }
   }
 }
@@ -264,6 +365,24 @@ export default {
 .add-btn:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.community-features {
+  padding: 0 30px 20px;
+}
+
+.feature-alert {
+  margin-bottom: 0;
+  border-radius: 8px;
+}
+
+.feature-content {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.feature-content p {
+  margin: 8px 0;
 }
 
 .category-tabs {
@@ -392,6 +511,118 @@ export default {
 .detail-info {
   color: #666;
   line-height: 1.6;
+}
+
+.community-benefits {
+  margin-top: 20px;
+}
+
+.benefits-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.benefit-item {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 8px;
+  padding-left: 5px;
+  border-left: 3px solid #667eea;
+}
+
+.community-discussion {
+  margin-top: 20px;
+}
+
+.discussion-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.discussion-input {
+  margin-bottom: 20px;
+}
+
+.discussion-textarea {
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.post-btn {
+  border-radius: 8px;
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  padding: 8px 20px;
+  transition: all 0.3s ease;
+}
+
+.post-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.discussion-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.empty-discussion {
+  text-align: center;
+  color: #999;
+  padding: 40px 0;
+}
+
+.discussion-item {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-left: 4px solid #667eea;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.post-author {
+  font-weight: 500;
+  color: #333;
+}
+
+.post-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.post-content {
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  word-break: break-word;
+}
+
+.post-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.post-actions .el-button {
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 4px 12px;
 }
 
 .add-form {

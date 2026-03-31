@@ -90,100 +90,89 @@ export default {
   },
   methods: {
     initData() {
-      // 模拟数据
-      this.skillCategories = [
-        {
-          id: 1,
-          name: '专业技能',
-          skillCount: 3,
-          skills: [
-            {
-              id: 1,
-              name: 'Java编程',
-              level: 4,
-              score: 85
-            },
-            {
-              id: 2,
-              name: '数据库设计',
-              level: 3,
-              score: 70
-            },
-            {
-              id: 3,
-              name: '前端开发',
-              level: 2,
-              score: 55
-            }
-          ]
-        },
-        {
-          id: 2,
-          name: '通用技能',
-          skillCount: 4,
-          skills: [
-            {
-              id: 4,
-              name: '英语',
-              level: 4,
-              score: 80
-            },
-            {
-              id: 5,
-              name: '办公软件',
-              level: 5,
-              score: 90
-            },
-            {
-              id: 6,
-              name: '沟通能力',
-              level: 3,
-              score: 75
-            },
-            {
-              id: 7,
-              name: '团队协作',
-              level: 3,
-              score: 70
-            }
-          ]
+      this.getSkills()
+      this.getRecommendations()
+    },
+    getSkills() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/skill-assessment/user-skills', {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      ]
+      }).then(response => {
+        const userSkills = response.data
+        // 按分类整理技能数据
+        this.skillCategories = this.groupSkillsByCategory(userSkills)
+        this.updateRadarChart()
+      }).catch(error => {
+        console.error('获取用户技能失败:', error)
+      })
+    },
+    getRecommendations() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/skill-assessment/recommendations', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.recommendedResources = response.data
+      }).catch(error => {
+        console.error('获取推荐资源失败:', error)
+      })
+    },
+    groupSkillsByCategory(skills) {
+      // 简化处理，实际应该根据技能的分类字段进行分组
+      const categories = {
+        '专业技能': [],
+        '通用技能': []
+      }
       
-      this.recommendedResources = [
-        {
-          id: 1,
-          title: 'Java核心技术',
-          type: '书籍',
-          description: 'Java编程的经典书籍，涵盖Java核心概念和高级特性',
-          skills: ['Java编程']
-        },
-        {
-          id: 2,
-          title: '数据库设计原理',
-          type: '在线课程',
-          description: '详细讲解数据库设计的基本原理和最佳实践',
-          skills: ['数据库设计']
-        },
-        {
-          id: 3,
-          title: '前端开发入门',
-          type: '在线课程',
-          description: '从基础到进阶的前端开发课程，包括HTML、CSS和JavaScript',
-          skills: ['前端开发']
-        },
-        {
-          id: 4,
-          title: '商务英语',
-          type: '在线课程',
-          description: '提高商务英语水平，包括邮件写作和会议沟通',
-          skills: ['英语']
-        }
-      ]
+      // 检查skills是否存在
+      if (skills && Array.isArray(skills)) {
+        skills.forEach(skill => {
+          // 简单分类逻辑，根据skillId进行分类
+          // 假设skillId为1-10的为专业技能，其他为通用技能
+          if (skill.skillId && skill.skillId <= 10) {
+            categories['专业技能'].push(skill)
+          } else {
+            categories['通用技能'].push(skill)
+          }
+        })
+      }
+      
+      return Object.entries(categories).map(([name, skills], index) => ({
+        id: index + 1,
+        name,
+        skillCount: skills.length,
+        skills: skills.map((skill, skillIndex) => ({
+          id: skillIndex + 1,
+          name: `技能 ${skill.skillId}`, // 使用skillId作为技能名称
+          level: skill.level,
+          score: skill.score || skill.level * 20 // 假设等级1-5对应分数20-100
+        }))
+      }))
     },
     initRadarChart() {
       this.radarChart = echarts.init(this.$refs.radarChart)
-      this.updateRadarChart()
+      // 初始化时先设置一个默认的空图表配置
+      const defaultOption = {
+        tooltip: {},
+        radar: {
+          indicator: [{ name: '暂无数据', max: 100 }]
+        },
+        series: [{
+          type: 'radar',
+          data: [{ value: [0], name: '技能水平' }],
+          areaStyle: {
+            color: 'rgba(79, 172, 254, 0.1)'
+          },
+          lineStyle: {
+            color: '#4facfe',
+            opacity: 0.5
+          }
+        }]
+      }
+      this.radarChart.setOption(defaultOption)
     },
     updateRadarChart() {
       let skills = []
@@ -198,32 +187,56 @@ export default {
         }
       }
       
-      const indicator = skills.map(skill => ({
-        name: skill.name,
-        max: 100
-      }))
-      
-      const option = {
-        tooltip: {},
-        radar: {
-          indicator: indicator
-        },
-        series: [{
-          type: 'radar',
-          data: [{
-            value: skills.map(skill => skill.score),
-            name: '技能水平',
+      // 确保有技能数据或设置默认数据
+      if (skills.length > 0) {
+        const indicator = skills.map(skill => ({
+          name: skill.name,
+          max: 100
+        }))
+        
+        const option = {
+          tooltip: {},
+          radar: {
+            indicator: indicator
+          },
+          series: [{
+            type: 'radar',
+            data: [{
+              value: skills.map(skill => skill.score),
+              name: '技能水平',
+              areaStyle: {
+                color: 'rgba(79, 172, 254, 0.3)'
+              },
+              lineStyle: {
+                color: '#4facfe'
+              }
+            }]
+          }]
+        }
+        
+        this.radarChart.setOption(option)
+      } else {
+        // 当没有技能数据时，显示空图表
+        const option = {
+          tooltip: {},
+          radar: {
+            indicator: [{ name: '暂无数据', max: 100 }]
+          },
+          series: [{
+            type: 'radar',
+            data: [{ value: [0], name: '技能水平' }],
+            // 添加空数据时的样式设置
             areaStyle: {
-              color: 'rgba(79, 172, 254, 0.3)'
+              color: 'rgba(79, 172, 254, 0.1)'
             },
             lineStyle: {
-              color: '#4facfe'
+              color: '#4facfe',
+              opacity: 0.5
             }
           }]
-        }]
+        }
+        this.radarChart.setOption(option)
       }
-      
-      this.radarChart.setOption(option)
     },
     getProgressColor(score) {
       if (score >= 80) {
@@ -235,10 +248,31 @@ export default {
       }
     },
     startAssessment() {
-      this.$message.success('开始技能测评')
+      const token = localStorage.getItem('token')
+      this.$axios.post('/skill-assessment/start', {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.$message.success('开始技能测评')
+        // 实际应该跳转到测评页面
+      }).catch(error => {
+        console.error('开始测评失败:', error)
+        this.$message.error('开始测评失败')
+      })
     },
     viewSkillDetail(id) {
-      this.$router.push(`/skill/${id}`)
+      const token = localStorage.getItem('token')
+      this.$axios.get(`/skill-assessment/skills/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const skill = response.data
+        this.$message.info(`技能详情: ${skill.name}\n描述: ${skill.description || '无'}`)
+      }).catch(error => {
+        console.error('获取技能详情失败:', error)
+      })
     },
     viewResource(id) {
       this.$message.success('查看学习资源')

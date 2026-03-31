@@ -14,7 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -53,9 +55,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     roleName = "STUDENT";
                 }
                 
+                // 为超级管理员添加ADMIN角色权限
+                List<String> authorities = new ArrayList<>();
+                authorities.add("ROLE_" + roleName);
+                if ("SUPER_ADMIN".equals(roleName)) {
+                    authorities.add("ROLE_ADMIN");
+                }
+                
                 UserDetails userDetails = User.withUsername(username)
                         .password("password") // 密码在认证时已经验证，这里不需要
-                        .authorities("ROLE_" + roleName)
+                        .authorities(authorities.toArray(new String[0]))
                         .build();
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

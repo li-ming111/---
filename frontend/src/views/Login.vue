@@ -76,8 +76,7 @@
 </template>
 
 <script>
-import axios from 'axios'
-import logo from '@/assets/logo.jpg'
+import logo from '../assets/logo.jpg'
 
 export default {
   data() {
@@ -120,7 +119,7 @@ export default {
         if (valid) {
           this.isLoading = true
           try {
-              const response = await axios.post('/api/auth/login', {
+              const response = await this.$axios.post('/auth/login', {
                 idCard: this.loginForm.idCard,
                 password: this.loginForm.password
               })
@@ -132,15 +131,30 @@ export default {
               if (this.rememberMe) {
                 localStorage.setItem('idCard', this.loginForm.idCard)
               }
-              axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+              this.$axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
               this.$message.success('登录成功')
+              
+              // 检查用户是否为大学生且未进行学校认证
+              const user = response.data.user
+              console.log('登录用户信息:', user)
+              console.log('用户年龄:', user.age, '类型:', typeof user.age)
+              console.log('用户schoolId:', user.schoolId)
+              console.log('用户school_id:', user.school_id)
+              const isCollegeStudent = user.age >= 18 && user.age <= 26
+              const hasSchoolId = (user.schoolId && user.schoolId !== null && user.schoolId !== '') || 
+                                  (user.school_id && user.school_id !== null && user.school_id !== '')
+              
               // 根据用户角色跳转不同页面
-              const userRole = response.data.user.role
+              const userRole = user.role
               setTimeout(() => {
                 if (userRole === '0' || userRole === 'super_admin') {
                   this.$router.push('/admin')
                 } else if (userRole === 'school_admin' || userRole === 'school') {
                   this.$router.push('/school-admin')
+                } else if (isCollegeStudent && !hasSchoolId) {
+                  // 大学生且未认证学校，跳转到学校认证页面
+                  this.$message.info('请完成学校信息认证')
+                  this.$router.push('/school-verify')
                 } else {
                   this.$router.push('/')
                 }

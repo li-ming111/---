@@ -105,24 +105,35 @@ export default {
     },
     getCheckinStatus() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/checkin/has-checked-in-today', {
+      this.$axios.get('/checkin/has-checked-in-today', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
         this.hasCheckedInToday = response.data
       }).catch(error => {
-        console.error('获取打卡状态失败:', error)
+        console.error('检查是否已打卡失败:', error)
       })
     },
     getCheckinRecords() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/checkin/records', {
+      this.$axios.get('/checkin/records', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.checkinRecords = response.data
+        const data = response.data || []
+        // 去重处理：按日期去重，确保每天只有一条打卡记录
+        const uniqueRecords = []
+        const checkedDates = new Set()
+        data.forEach(record => {
+          const checkinDate = new Date(record.checkinTime).toDateString()
+          if (!checkedDates.has(checkinDate)) {
+            checkedDates.add(checkinDate)
+            uniqueRecords.push(record)
+          }
+        })
+        this.checkinRecords = uniqueRecords
         this.calculateStats()
       }).catch(error => {
         console.error('获取打卡记录失败:', error)
@@ -130,7 +141,7 @@ export default {
     },
     getCheckinCount() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/checkin/count', {
+      this.$axios.get('/checkin/count', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -142,7 +153,7 @@ export default {
     },
     doCheckin() {
       const token = localStorage.getItem('token')
-      this.$axios.post('/api/checkin/do-checkin', {}, {
+      this.$axios.post('/checkin/do-checkin', {}, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -152,7 +163,7 @@ export default {
         this.getCheckinRecords()
         this.getCheckinCount()
       }).catch(error => {
-        this.$message.error('打卡失败: ' + error.response.data)
+        this.$message.error('打卡失败: ' + (error.response?.data || '未知错误'))
       })
     },
     calculateStats() {
@@ -189,7 +200,7 @@ export default {
       
       let count = 0
       const weekAgo = new Date()
-      weekAgo.setDate(weekAgo.getDate() - 7)
+      weekAgo.setDate(weekAgo.getDate() - 6) // 改为6天前，这样统计的是7天的范围
       weekAgo.setHours(0, 0, 0, 0)
       
       for (const record of this.checkinRecords) {

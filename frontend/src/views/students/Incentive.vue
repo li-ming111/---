@@ -140,31 +140,51 @@ export default {
     },
     getIncentives() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/incentives', {
+      this.$axios.get('/incentives', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.incentives = response.data
+        const data = response.data || []
+        // 去重处理：根据ID去重
+        const uniqueIncentives = []
+        const incentiveIds = new Set()
+        data.forEach(incentive => {
+          if (!incentiveIds.has(incentive.id)) {
+            incentiveIds.add(incentive.id)
+            uniqueIncentives.push(incentive)
+          }
+        })
+        this.incentives = uniqueIncentives
       }).catch(error => {
-        console.error('获取激励列表失败:', error)
+        console.error('获取激励措施失败:', error)
       })
     },
     getUserIncentives() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/incentives/user-incentives', {
+      this.$axios.get('/incentives/user-incentives', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.userIncentives = response.data
+        const data = response.data || []
+        // 去重处理：根据ID去重
+        const uniqueUserIncentives = []
+        const userIncentiveIds = new Set()
+        data.forEach(incentive => {
+          if (!userIncentiveIds.has(incentive.id)) {
+            userIncentiveIds.add(incentive.id)
+            uniqueUserIncentives.push(incentive)
+          }
+        })
+        this.userIncentives = uniqueUserIncentives
       }).catch(error => {
         console.error('获取用户激励记录失败:', error)
       })
     },
     getUserPoints() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/incentives/user-points', {
+      this.$axios.get('/incentives/user-points', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -180,7 +200,7 @@ export default {
     },
     claimIncentive(incentive) {
       const token = localStorage.getItem('token')
-      this.$axios.post(`/api/incentives/${incentive.id}/claim`, {}, {
+      this.$axios.post(`/incentives/${incentive.id}/claim`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

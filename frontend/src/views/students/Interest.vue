@@ -190,85 +190,115 @@ export default {
   },
   methods: {
     getPopularInterests() {
-      // 模拟数据
-      this.popularInterests = [
-        { id: 1, name: '编程', category: 'tech', popularity: 95 },
-        { id: 2, name: '摄影', category: 'art', popularity: 88 },
-        { id: 3, name: '篮球', category: 'sports', popularity: 85 },
-        { id: 4, name: '演讲', category: 'other', popularity: 80 },
-        { id: 5, name: '辩论', category: 'academic', popularity: 75 },
-        { id: 6, name: '吉他', category: 'art', popularity: 70 },
-        { id: 7, name: '人工智能', category: 'tech', popularity: 65 },
-        { id: 8, name: '马拉松', category: 'sports', popularity: 60 }
-      ]
+      const token = localStorage.getItem('token')
+      this.$axios.get('/interest/popular', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.popularInterests = response.data
+      }).catch(error => {
+        console.error('获取热门兴趣失败:', error)
+      })
     },
     getInterestGroups() {
-      // 模拟数据
-      this.interestGroups = [
-        {
-          id: 1,
-          name: '编程爱好者协会',
-          category: 'tech',
-          description: '专注于编程技术交流和项目开发的兴趣小组',
-          members: 45,
-          activities: 12
-        },
-        {
-          id: 2,
-          name: '摄影社',
-          category: 'art',
-          description: '热爱摄影的同学交流学习的平台',
-          members: 32,
-          activities: 8
-        },
-        {
-          id: 3,
-          name: '篮球俱乐部',
-          category: 'sports',
-          description: '组织篮球比赛和训练的兴趣小组',
-          members: 28,
-          activities: 15
-        },
-        {
-          id: 4,
-          name: '辩论队',
-          category: 'academic',
-          description: '参加各类辩论比赛的学生组织',
-          members: 15,
-          activities: 6
+      const token = localStorage.getItem('token')
+      this.$axios.get('/interest/groups', {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      ]
+      }).then(response => {
+        this.interestGroups = response.data
+      }).catch(error => {
+        console.error('获取兴趣小组失败:', error)
+      })
     },
     updateCalendarActivities() {
-      // 模拟日历活动
+      // 日历活动功能待实现
       this.calendarActivities = []
     },
     searchInterests() {
-      // 实现搜索功能
+      const token = localStorage.getItem('token')
+      this.$axios.get('/interest/search', {
+        params: { keyword: this.searchKeyword },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        // 搜索结果处理
+        console.log('搜索结果:', response.data)
+      }).catch(error => {
+        console.error('搜索兴趣失败:', error)
+      })
     },
     onDateChange() {
-      // 实现日期变更功能
+      this.updateCalendarActivities()
     },
     viewInterest(interest) {
-      this.$message.info(`查看兴趣: ${interest.name}`)
+      const token = localStorage.getItem('token')
+      this.$axios.get('/interest/groups/interest', {
+        params: { interestName: interest.name },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.interestGroups = response.data
+        this.$message.info(`查看兴趣: ${interest.name} 相关小组`)
+      }).catch(error => {
+        console.error('获取兴趣相关小组失败:', error)
+      })
     },
     joinGroup(group) {
-      this.$message.success(`加入小组: ${group.name} 成功`)
+      const token = localStorage.getItem('token')
+      this.$axios.post(`/interest/groups/${group.id}/join`, {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.$message.success('加入小组成功')
+        this.getInterestGroups()
+      }).catch(error => {
+        console.error('加入小组失败:', error)
+        this.$message.error('加入小组失败')
+      })
     },
     viewGroup(group) {
-      this.$message.info(`查看小组: ${group.name}`)
+      const token = localStorage.getItem('token')
+      this.$axios.get(`/interest/groups/${group.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        const groupDetail = response.data
+        this.$message.info(`小组详情: ${groupDetail.name}\n成员数: ${groupDetail.memberCount}`)
+      }).catch(error => {
+        console.error('获取小组详情失败:', error)
+      })
     },
     createGroup() {
-      const newGroup = {
-        ...this.newGroup,
-        id: Date.now(),
-        members: 1,
-        activities: 0
+      const token = localStorage.getItem('token')
+      const user = JSON.parse(localStorage.getItem('user'))
+      
+      const groupData = {
+        name: this.newGroup.name,
+        description: this.newGroup.description,
+        communityId: 1, // 默认社区ID
+        leaderId: user.id
       }
-      this.interestGroups.push(newGroup)
-      this.$message.success('兴趣小组创建成功')
-      this.dialogVisible = false
-      this.resetForm()
+      
+      this.$axios.post('/interest/groups/create', groupData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.$message.success('兴趣小组创建成功')
+        this.dialogVisible = false
+        this.getInterestGroups()
+        this.resetForm()
+      }).catch(error => {
+        console.error('创建兴趣小组失败:', error)
+        this.$message.error('创建兴趣小组失败')
+      })
     },
     resetForm() {
       this.newGroup = {

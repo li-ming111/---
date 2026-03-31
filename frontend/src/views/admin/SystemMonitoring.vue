@@ -105,10 +105,10 @@
 export default {
   data() {
     return {
-      cpuUsage: 45,
-      memoryUsage: 68,
-      diskUsage: 32,
-      apiResponseTime: 150,
+      cpuUsage: 0,
+      memoryUsage: 0,
+      diskUsage: 0,
+      apiResponseTime: 0,
       alerts: [],
       serverInfo: [],
       isLoading: false
@@ -126,7 +126,7 @@ export default {
     },
     getSystemStatus() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/system/monitoring/status', {
+      this.$axios.get('/system/monitoring/status', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -142,7 +142,7 @@ export default {
     },
     getServerInfo() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/system/monitoring/server-info', {
+      this.$axios.get('/system/monitoring/server-info', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -154,7 +154,7 @@ export default {
     },
     getAlerts() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/system/monitoring/alerts', {
+      this.$axios.get('/system/monitoring/alerts', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

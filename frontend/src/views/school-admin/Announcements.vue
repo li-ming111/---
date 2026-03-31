@@ -138,6 +138,9 @@ export default {
       announcements: []
     }
   },
+  mounted() {
+    this.getAnnouncements()
+  },
   computed: {
     filteredAnnouncements() {
       let result = this.announcements
@@ -193,24 +196,38 @@ export default {
     publishAnnouncement() {
       this.$refs.announcementForm.validate((valid) => {
         if (valid) {
-          const newAnnouncement = {
-            id: this.announcements.length + 1,
-            ...this.announcementForm,
-            publishTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            status: 'active',
-            readCount: 0
+          const token = localStorage.getItem('token')
+          const announcement = {
+            title: this.announcementForm.title,
+            content: this.announcementForm.content,
+            priority: this.announcementForm.priority,
+            expiryDate: this.announcementForm.expiryDate,
+            scope: this.announcementForm.scope,
+            targetRole: this.announcementForm.targetRole,
+            status: 'active'
           }
-          this.announcements.unshift(newAnnouncement)
-          this.$message.success('通知发布成功')
-          // 重置表单
-          this.announcementForm = {
-            title: '',
-            content: '',
-            priority: 'medium',
-            expiryDate: '',
-            scope: 'all',
-            targetRole: ''
-          }
+          
+          this.$axios.post('/announcements/publish', announcement, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }).then(response => {
+            this.$message.success('通知发布成功')
+            this.getAnnouncements()
+            // 重置表单
+            this.announcementForm = {
+              title: '',
+              content: '',
+              priority: 'medium',
+              expiryDate: '',
+              scope: 'all',
+              targetRole: ''
+            }
+          }).catch(error => {
+            console.error('发布通知失败:', error)
+            this.$message.error('发布通知失败')
+          })
         }
       })
     },
@@ -224,13 +241,34 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const index = this.announcements.findIndex(a => a.id === id)
-        if (index !== -1) {
-          this.announcements.splice(index, 1)
+        const token = localStorage.getItem('token')
+        this.$axios.delete(`/announcements/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(response => {
           this.$message.success('通知删除成功')
-        }
+          this.getAnnouncements()
+        }).catch(error => {
+          console.error('删除通知失败:', error)
+          this.$message.error('删除通知失败')
+        })
       }).catch(() => {
         // 取消删除
+      })
+    },
+    getAnnouncements() {
+      const token = localStorage.getItem('token')
+      this.$axios.get('/announcements/list', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        this.announcements = response.data || []
+      }).catch(error => {
+        console.error('获取通知列表失败:', error)
+        this.$message.error('获取通知列表失败')
+        this.announcements = []
       })
     }
   }

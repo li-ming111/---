@@ -6,7 +6,9 @@ import com.xueya.entity.User;
 import com.xueya.mapper.UserMapper;
 import com.xueya.service.UserService;
 import org.springframework.stereotype.Service;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
@@ -33,5 +35,38 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public List<User> getUsersBySchoolId(Long schoolId) {
         return baseMapper.selectList(new QueryWrapper<User>().eq("school_id", schoolId));
+    }
+
+    @Override
+    public Map<String, Long> getUserCountByRole() {
+        Map<String, Long> roleCounts = new HashMap<>();
+        
+        // 查询所有用户并按角色统计
+        List<User> users = baseMapper.selectList(new QueryWrapper<>());
+        
+        for (User user : users) {
+            String role = user.getRole();
+            if (role != null) {
+                String roleName = getRoleName(role);
+                roleCounts.put(roleName, roleCounts.getOrDefault(roleName, 0L) + 1);
+            }
+        }
+        
+        return roleCounts;
+    }
+
+    private String getRoleName(String role) {
+        switch (role) {
+            case "ROLE_SUPER_ADMIN":
+                return "超级管理员";
+            case "ROLE_SCHOOL_ADMIN":
+                return "学校管理员";
+            case "ROLE_TEACHER":
+                return "教师";
+            case "ROLE_STUDENT":
+                return "学生";
+            default:
+                return "其他";
+        }
     }
 }

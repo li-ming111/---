@@ -164,12 +164,21 @@ export default {
     },
     getGoals() {
       const token = localStorage.getItem('token')
-      this.$axios.get('/api/goals', {
+      this.$axios.get('/goals', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(response => {
-        this.goals = response.data
+        // 去重处理：根据ID去重
+        const uniqueGoals = []
+        const goalIds = new Set()
+        response.data.forEach(goal => {
+          if (!goalIds.has(goal.id)) {
+            goalIds.add(goal.id)
+            uniqueGoals.push(goal)
+          }
+        })
+        this.goals = uniqueGoals
       }).catch(error => {
         console.error('获取目标列表失败:', error)
       })
@@ -180,7 +189,7 @@ export default {
     },
     updateGoalStatus(goalId, status) {
       const token = localStorage.getItem('token')
-      this.$axios.put(`/api/goals/${goalId}/status`, { status }, {
+      this.$axios.put(`/goals/${goalId}/status`, { status }, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -193,7 +202,7 @@ export default {
     },
     addGoal() {
       const token = localStorage.getItem('token')
-      this.$axios.post('/api/goals', this.newGoal, {
+      this.$axios.post('/goals', this.newGoal, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
